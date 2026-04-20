@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.emergency.aria.app-merged_res-73:/layout_activity_main.xml.flat",
+        "source": "com.emergency.aria.app-main-75:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.emergency.aria.app-merged_res-73:/menu_bottom_nav_menu.xml.flat",
+        "source": "com.emergency.aria.app-main-75:/menu/bottom_nav_menu.xml"
+    }
+]

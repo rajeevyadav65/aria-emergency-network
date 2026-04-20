@@ -1,0 +1,1357 @@
+{
+  "info": {
+    "name": "ARIA Emergency Network API",
+    "description": "Complete ARIA Emergency Network API \u2014 v2.0 with AI, Offline Sync, Disaster Alerts, Medical Services, Voice Trigger",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "authToken",
+      "value": ""
+    },
+    {
+      "key": "deviceId",
+      "value": "postman-test-device-001"
+    },
+    {
+      "key": "emergencyId",
+      "value": "1"
+    },
+    {
+      "key": "sessionId",
+      "value": "postman-test-device-001"
+    }
+  ],
+  "item": [
+    {
+      "name": "\ud83d\udd10 Authentication",
+      "item": [
+        {
+          "name": "Register New User",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"test1234\",\n  \"deviceId\": \"{{deviceId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('authToken', json.token);",
+                  "  pm.test('Token received', () => pm.expect(json.token).to.be.a('string'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (Demo: Alice)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alice@demo.com\",\n  \"password\": \"demo123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('authToken', json.token);",
+                  "  pm.collectionVariables.set('deviceId', json.deviceId);",
+                  "  pm.test('Login successful', () => pm.expect(json.token).to.be.a('string'));",
+                  "  console.log('Token saved:', json.token.substring(0, 20) + '...');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@aria.com\",\n  \"password\": \"admin123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('authToken', pm.response.json().token);",
+                  "  pm.test('Admin login OK', () => pm.expect(pm.response.json().role).to.eql('ADMIN'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Guest Session",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/guest?deviceId={{deviceId}}",
+              "query": [
+                {
+                  "key": "deviceId",
+                  "value": "{{deviceId}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Guest token received', () => {",
+                  "  pm.expect(pm.response.json().role).to.eql('GUEST');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udea8 Emergency",
+      "item": [
+        {
+          "name": "Report Emergency (HIGH - Needs Help)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/emergency/report",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"I fell down the stairs and can't get up\",\n  \"latitude\": 27.1767,\n  \"longitude\": 78.0081,\n  \"fallDetected\": true,\n  \"movement\": \"STATIONARY\",\n  \"userResponse\": \"NEED_HELP\",\n  \"deviceId\": \"{{deviceId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('HIGH risk emergency created', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.riskLevel).to.eql('HIGH');",
+                  "  pm.collectionVariables.set('emergencyId', json.emergencyId);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Report Emergency (FALSE ALARM - User OK)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/emergency/report",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Accidental trigger\",\n  \"latitude\": 27.1767,\n  \"longitude\": 78.0081,\n  \"fallDetected\": false,\n  \"movement\": \"WALKING\",\n  \"userResponse\": \"ARE_YOU_OK\",\n  \"deviceId\": \"{{deviceId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Correctly classified as FALSE_ALARM', () => {",
+                  "  pm.expect(pm.response.json().status).to.eql('FALSE_ALARM');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Report Emergency (MEDIUM - Fall + Moving)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/emergency/report",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Possible fall, still moving\",\n  \"latitude\": 27.1800,\n  \"longitude\": 78.0100,\n  \"fallDetected\": true,\n  \"movement\": \"WALKING\",\n  \"userResponse\": \"NO_RESPONSE\",\n  \"deviceId\": \"{{deviceId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Emergency by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/emergency/{{emergencyId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Get All Emergencies",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/emergency/all",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Get Active Emergencies",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/emergency/active",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Resolve Emergency",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/emergency/{{emergencyId}}/resolve",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Emergency resolved', () => {",
+                  "  pm.expect(pm.response.json().status).to.eql('RESOLVED');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udcac AI Chat (ARIA)",
+      "item": [
+        {
+          "name": "Send Chat Message",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/chat/message",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"message\": \"I need help, I fell down\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Chat reply received', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.reply).to.be.a('string');",
+                  "  pm.expect(json.sessionId).to.exist;",
+                  "  console.log('Is Emergency:', json.isEmergency);",
+                  "  console.log('Reply:', json.reply.substring(0, 100));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Chat History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/history?sessionId={{sessionId}}",
+              "query": [
+                {
+                  "key": "sessionId",
+                  "value": "{{sessionId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Clear Chat History",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/clear?sessionId={{sessionId}}",
+              "query": [
+                {
+                  "key": "sessionId",
+                  "value": "{{sessionId}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udccd Location",
+      "item": [
+        {
+          "name": "Update Location",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/location/update",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 27.1767,\n  \"longitude\": 78.0081,\n  \"deviceId\": \"{{deviceId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Location updated', () => {",
+                  "  pm.expect(pm.response.json().status).to.eql('updated');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/users/me",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "\u2699\ufe0f Admin (Requires ADMIN role)",
+      "item": [
+        {
+          "name": "Get Full Stats",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/stats",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Stats returned', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.totalEmergencies).to.be.a('number');",
+                  "  pm.expect(json.resolutionRatePercent).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/users",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Update User Role",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/2/role?role=ADMIN",
+              "query": [
+                {
+                  "key": "role",
+                  "value": "ADMIN"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83c\udfe5 Health (Actuator)",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/actuator/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Application is UP', () => {",
+                  "  pm.expect(pm.response.json().status).to.eql('UP');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "App Info",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/actuator/info"
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83c\udf0d Disaster Alerts",
+      "item": [
+        {
+          "name": "Get Active Disaster Alerts",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/disasters/active"
+          }
+        },
+        {
+          "name": "Get Nearby Disasters",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/disasters/nearby?lat=27.1767&lon=78.0081",
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "27.1767"
+                },
+                {
+                  "key": "lon",
+                  "value": "78.0081"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Manual Disaster Alert (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/disasters",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"type\": \"FIRE\", \"title\": \"Forest fire near Agra\", \"description\": \"Large forest fire detected.\", \"epicenterLat\": 27.18, \"epicenterLon\": 78.02, \"radiusKm\": 20.0, \"severity\": \"HIGH\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83c\udfe5 Medical Services",
+      "item": [
+        {
+          "name": "Find Nearby Doctors",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/medical/doctors/nearby?lat=27.1767&lon=78.0081",
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "27.1767"
+                },
+                {
+                  "key": "lon",
+                  "value": "78.0081"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Find Nearby Ambulances",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/medical/ambulances/nearby?lat=27.1767&lon=78.0081",
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "27.1767"
+                },
+                {
+                  "key": "lon",
+                  "value": "78.0081"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Request Medical Consultation",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/medical/consultation",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"doctorId\": 5, \"emergencyId\": 1}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udd0a Voice Trigger",
+      "item": [
+        {
+          "name": "Set Voice Keyword",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/voice/keyword",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"keyword\": \"HELP123\", \"hint\": \"Starts with H\"}"
+            }
+          }
+        },
+        {
+          "name": "Get Voice Keyword Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/voice/keyword/status",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Silent SOS Trigger",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/voice/trigger",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"latitude\": 27.1767, \"longitude\": 78.0081, \"deviceId\": \"{{deviceId}}\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\ude91 Dispatch & Duty",
+      "item": [
+        {
+          "name": "Toggle On Duty",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/dispatch/duty",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"onDuty\": true, \"isAvailable\": true}"
+            }
+          }
+        },
+        {
+          "name": "Respond to Emergency",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/dispatch/respond",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"emergencyId\": 1, \"etaMinutes\": \"8\", \"victimDeviceId\": \"{{deviceId}}\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83e\udd16 AI Detection",
+      "item": [
+        {
+          "name": "Report On-Device Signal",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/ai/detect/signal",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"deviceId\": \"{{deviceId}}\", \"signal\": \"FALL\", \"latitude\": 27.1767, \"longitude\": 78.0081}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udd04 Offline Sync",
+      "item": [
+        {
+          "name": "Sync Offline Batch",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/sync/batch",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"deviceId\": \"{{deviceId}}\", \"items\": [{\"localId\": \"offline-001\", \"type\": \"EMERGENCY_REPORT\", \"payload\": {\"message\": \"Offline emergency\", \"latitude\": 27.1767, \"longitude\": 78.0081, \"deviceId\": \"{{deviceId}}\", \"fallDetected\": false, \"movement\": \"STATIONARY\", \"userResponse\": \"NEED_HELP\"}}]}"
+            }
+          }
+        },
+        {
+          "name": "Get Pending Sync Count",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/pending?deviceId={{deviceId}}",
+              "query": [
+                {
+                  "key": "deviceId",
+                  "value": "{{deviceId}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83c\udf0d Disaster Alerts",
+      "item": [
+        {
+          "name": "Get Active Disasters",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/disasters/active"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Disasters Near Location",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/disasters/nearby?lat=27.1767&lon=78.0081",
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "27.1767"
+                },
+                {
+                  "key": "lon",
+                  "value": "78.0081"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Manual Alert (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/disasters",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"type\": \"FLOOD\", \"title\": \"Flash flood warning\", \"severity\": \"HIGH\", \"epicenterLat\": 27.18, \"epicenterLon\": 78.01, \"radiusKm\": 10.0}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83c\udfe5 Medical & Dispatch",
+      "item": [
+        {
+          "name": "Find Nearby Doctors",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/medical/doctors/nearby?lat=27.1767&lon=78.0081",
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "27.1767"
+                },
+                {
+                  "key": "lon",
+                  "value": "78.0081"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Find Nearby Ambulances",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/medical/ambulances/nearby?lat=27.1767&lon=78.0081",
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "27.1767"
+                },
+                {
+                  "key": "lon",
+                  "value": "78.0081"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Request Medical Consultation",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/medical/consultation",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"doctorId\": 5}"
+            }
+          }
+        },
+        {
+          "name": "Toggle Duty Status (Doctor/Police/Ambulance)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/dispatch/duty",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"onDuty\": true, \"isAvailable\": true}"
+            }
+          }
+        },
+        {
+          "name": "Respond to Emergency (Responder)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/dispatch/respond",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"emergencyId\": 1, \"etaMinutes\": \"8\", \"victimDeviceId\": \"device-alice-002\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83c\udfa4 Voice Trigger",
+      "item": [
+        {
+          "name": "Set Secret Keyword",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/voice/keyword",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"keyword\": \"HELP123\", \"hint\": \"starts with H\"}"
+            }
+          }
+        },
+        {
+          "name": "Get Keyword Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/voice/keyword/status",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Silent SOS Trigger",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/voice/trigger",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"latitude\": 27.1767, \"longitude\": 78.0081, \"deviceId\": \"{{deviceId}}\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83e\udd16 AI Detection",
+      "item": [
+        {
+          "name": "Report On-Device Signal",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/ai/detect/signal",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"deviceId\": \"{{deviceId}}\", \"signal\": \"FALL_DETECTED\", \"latitude\": 27.1767, \"longitude\": 78.0081}"
+            }
+          }
+        },
+        {
+          "name": "Analyze Camera Frame",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/ai/detect/frame",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"imageBase64\": \"<base64_jpeg>\", \"deviceId\": \"{{deviceId}}\", \"deviceSignal\": \"NONE\", \"latitude\": 27.1767, \"longitude\": 78.0081}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udd04 Offline Sync",
+      "item": [
+        {
+          "name": "Sync Offline Batch",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/sync/batch",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"deviceId\": \"{{deviceId}}\", \"items\": [{\"localId\": \"local-uuid-001\", \"type\": \"LOCATION_UPDATE\", \"payload\": {\"latitude\": 27.1767, \"longitude\": 78.0081}}]}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Sync response has idMappings', () => pm.expect(pm.response.json()).to.have.property('idMappings'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Pending Count",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/pending?deviceId={{deviceId}}",
+              "query": [
+                {
+                  "key": "deviceId",
+                  "value": "{{deviceId}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udcca Export",
+      "item": [
+        {
+          "name": "Export Emergencies CSV",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/export/emergencies.csv",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Export Filtered CSV (HIGH risk only)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/export/emergencies.csv?riskLevel=HIGH",
+              "query": [
+                {
+                  "key": "riskLevel",
+                  "value": "HIGH"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udcc8 Analytics",
+      "item": [
+        {
+          "name": "Timeline \u2014 last 24h",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/analytics/timeline"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 24 labels', () => pm.expect(pm.response.json().labels.length).to.eql(24));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Risk Level Breakdown",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/analytics/risk"
+          }
+        },
+        {
+          "name": "Status Breakdown",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/analytics/status"
+          }
+        },
+        {
+          "name": "7-Day Trend",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/analytics/trend"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Has trend data', () => { const r = pm.response.json(); pm.expect(r.labels.length).to.eql(7); pm.expect(r).to.have.property('changePercent'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Geographic Hotspots",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/analytics/hotspots"
+          }
+        },
+        {
+          "name": "Users by Role",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/analytics/roles"
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udcc8 Analytics",
+      "item": [
+        {
+          "name": "Timeline (last 24h)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/analytics/timeline"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Has 24 labels', () => pm.expect(pm.response.json().labels).to.have.lengthOf(24));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "By Risk Level",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/analytics/risk"
+          }
+        },
+        {
+          "name": "By Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/analytics/status"
+          }
+        },
+        {
+          "name": "7-Day Trend",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/analytics/trend"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Has 7 days', () => pm.expect(pm.response.json().labels).to.have.lengthOf(7));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Geographic Hotspots",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/analytics/hotspots"
+          }
+        },
+        {
+          "name": "Users by Role",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/analytics/roles"
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83c\udfa5 Medical Consultation",
+      "item": [
+        {
+          "name": "Request Consultation",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/medical/consultation",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"doctorId\": 5}"
+            }
+          }
+        },
+        {
+          "name": "Accept Consultation (Doctor)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/medical/consultation/1/accept",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "End Consultation",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/medical/consultation/1/end",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"notes\": \"Patient stable, mild contusion on left knee.\", \"prescription\": \"Rest for 2 days. Ibuprofen 400mg if pain persists.\"}"
+            }
+          }
+        },
+        {
+          "name": "Get Pending Consultations",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/medical/consultation/pending",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

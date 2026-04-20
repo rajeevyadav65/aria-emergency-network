@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+	<string>ARIA Emergency</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>2.0.0</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+
+	<!-- ── Permission Descriptions (iOS requires these) ── -->
+
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>ARIA uses your location to report your exact position in an emergency, find nearby help, and share your location with emergency responders.</string>
+
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>ARIA uses your location in the background to continuously share it with police and ambulance during an emergency, and to trigger fall detection alerts.</string>
+
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>ARIA needs background location access to send emergency alerts with your precise location even when the app is not open.</string>
+
+	<key>NSMicrophoneUsageDescription</key>
+	<string>ARIA uses the microphone to listen for your secret voice trigger keyword and to power the AI voice assistant.</string>
+
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>ARIA uses speech recognition to detect your secret SOS keyword and to enable voice commands for the AI assistant.</string>
+
+	<key>NSCameraUsageDescription</key>
+	<string>ARIA uses the camera to detect signs of distress, falls, or panic using AI face and body analysis to automatically alert emergency services.</string>
+
+	<key>NSMotionUsageDescription</key>
+	<string>ARIA uses the accelerometer to detect sudden falls and trigger automatic emergency alerts.</string>
+
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>ARIA uses Bluetooth to communicate emergency alerts with nearby devices when there is no internet connection.</string>
+
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>ARIA uses Bluetooth to broadcast emergency signals to nearby devices without internet.</string>
+
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>ARIA uses local network (WiFi Direct) to share emergency information with nearby devices when there is no internet connection.</string>
+
+	<key>NSContactsUsageDescription</key>
+	<string>ARIA can access your contacts to quickly notify your emergency contacts when you send an SOS.</string>
+
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>ARIA may save captured emergency images to your photo library for evidence purposes.</string>
+
+	<!-- ── Background Modes ── -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>audio</string>
+		<string>fetch</string>
+		<string>remote-notification</string>
+		<string>processing</string>
+	</array>
+
+	<!-- ── URL Scheme for deep linking ── -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>aria-emergency</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- ── Supported orientations ── -->
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+
+	<!-- ── Status bar ── -->
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleDefault</string>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+
+	<!-- ── Google Maps API Key ── -->
+	<key>GMSApiKey</key>
+	<string>YOUR_GOOGLE_MAPS_IOS_API_KEY</string>
+
+	<!-- ── App Transport Security (allow localhost in dev) ── -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
+</dict>
+</plist>

@@ -1,0 +1,37 @@
+# docker-compose.override.yml — local development overrides
+# This file is automatically merged by docker-compose when present.
+# Use it to override settings for local development without touching the main compose file.
+#
+# Usage: docker-compose up   (override is applied automatically)
+
+version: '3.9'
+
+services:
+  backend:
+    # In dev: rebuild image on every 'docker-compose up --build'
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      # Override these with your actual keys for local dev
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - APP_JWT_SECRET=dev-secret-key-not-for-production-32chars
+      - SPRING_PROFILES_ACTIVE=docker
+      # Enable H2 console in dev container
+      - SPRING_H2_CONSOLE_ENABLED=true
+    ports:
+      - "8080:8080"
+      - "5005:5005"    # Remote debug port (JDWP)
+    # Enable remote debugging in dev
+    command: >
+      java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+           -Djava.security.egd=file:/dev/./urandom
+           -Dspring.profiles.active=docker
+           -jar app.jar
+    volumes:
+      # Persist data between restarts
+      - aria-dev-data:/app/data
+    restart: "no"     # Don't auto-restart in dev
+
+volumes:
+  aria-dev-data:

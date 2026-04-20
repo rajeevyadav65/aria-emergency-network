@@ -1,0 +1,27 @@
+R_DEF: Internal format may change without notice
+local
+id actionButtons
+id bottomNav
+id btnAcceptCase
+id btnImOk
+id btnNavigate
+id btnSos
+id btnTrackVictims
+id cardFallWarning
+id cardIncomingAlert
+id header
+id ivFaceIndicator
+id ivVoiceIndicator
+id nav_alerts
+id nav_home
+id sensorPanel
+id tvCountdown
+id tvFaceStatus
+id tvMode
+id tvRole
+id tvRoleHint
+id tvStatus
+id tvSyncBadge
+id tvUserName
+layout activity_main
+menu bottom_nav_menu

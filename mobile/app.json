@@ -1,0 +1,57 @@
+{
+  "name": "aria-emergency",
+  "displayName": "ARIA Emergency",
+  "version": "2.0.0",
+  "description": "AI-powered emergency response — works online AND offline",
+
+  "ios": {
+    "bundleIdentifier": "com.aria.emergency",
+    "buildNumber": "1",
+    "supportsTablet": false,
+    "requireFullScreen": true,
+    "backgroundColor": "#F2F2F7",
+    "statusBarStyle": "default",
+    "config": {
+      "googleMapsApiKey": "YOUR_GOOGLE_MAPS_IOS_KEY"
+    },
+    "infoPlist": {
+      "UIBackgroundModes": ["location", "audio", "fetch", "remote-notification", "processing"],
+      "NSLocationAlwaysAndWhenInUseUsageDescription": "ARIA needs location to report emergencies and share position with responders.",
+      "NSMicrophoneUsageDescription": "ARIA uses the microphone for the AI voice assistant and secret SOS keyword detection.",
+      "NSCameraUsageDescription": "ARIA uses camera for AI fall and panic detection."
+    }
+  },
+
+  "android": {
+    "package": "com.emergency.aria",
+    "versionCode": 2,
+    "adaptiveIcon": {
+      "foregroundImage": "./assets/icon-fg.png",
+      "backgroundColor": "#FF3B30"
+    },
+    "permissions": [
+      "android.permission.ACCESS_FINE_LOCATION",
+      "android.permission.ACCESS_COARSE_LOCATION",
+      "android.permission.ACCESS_BACKGROUND_LOCATION",
+      "android.permission.CAMERA",
+      "android.permission.RECORD_AUDIO",
+      "android.permission.BLUETOOTH_SCAN",
+      "android.permission.BLUETOOTH_ADVERTISE",
+      "android.permission.BLUETOOTH_CONNECT",
+      "android.permission.ACCESS_WIFI_STATE",
+      "android.permission.CHANGE_WIFI_STATE",
+      "android.permission.NEARBY_WIFI_DEVICES",
+      "android.permission.FOREGROUND_SERVICE",
+      "android.permission.FOREGROUND_SERVICE_LOCATION",
+      "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+      "android.permission.RECEIVE_BOOT_COMPLETED",
+      "android.permission.VIBRATE",
+      "android.permission.POST_NOTIFICATIONS"
+    ],
+    "config": {
+      "googleMaps": {
+        "apiKey": "YOUR_GOOGLE_MAPS_ANDROID_KEY"
+      }
+    }
+  }
+}

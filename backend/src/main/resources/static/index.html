@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>ARIA — AI Emergency Network</title>
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="theme-color" content="#f04747"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="ARIA"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <style>
+    :root{--bg:#09090c;--s:#111217;--s2:#16181f;--s3:#1c1f28;--b:#1f2230;--b2:#272b3a;--b3:#2e3347;--t:#eaecf4;--t2:#9298b0;--t3:#555d78;--t4:#353b52;--red:#f04747;--rbg:rgba(240,71,71,.12);--rbr:rgba(240,71,71,.25);--amber:#f59e0b;--abg:rgba(245,158,11,.1);--abr:rgba(245,158,11,.2);--green:#22c55e;--gbg:rgba(34,197,94,.1);--gbr:rgba(34,197,94,.2);--blue:#3b82f6;--bbg:rgba(59,130,246,.1);--bbr:rgba(59,130,246,.2);--purple:#8b5cf6;--fh:'Syne',sans-serif;--fm:'DM Mono',monospace;--fb:'DM Sans',sans-serif;--r:10px;--r2:7px;--r3:16px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body,#root{height:100%;overflow:hidden;background:var(--bg);color:var(--t);font-family:var(--fb)}
+    ::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-thumb{background:var(--b3);border-radius:99px}
+    .app{height:100vh;display:flex;flex-direction:column}
+    .topbar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--s);border-bottom:1px solid var(--b);flex-shrink:0}
+    .logo{font-family:var(--fh);font-weight:800;font-size:17px;display:flex;align-items:center;gap:9px;letter-spacing:-.3px}
+    .lp{width:8px;height:8px;border-radius:50%;background:var(--red);animation:lp 2s ease infinite}
+    @keyframes lp{0%,100%{box-shadow:0 0 0 0 rgba(240,71,71,.5)}50%{box-shadow:0 0 0 5px rgba(240,71,71,0)}}
+    .tr{display:flex;align-items:center;gap:10px}
+    .pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-family:var(--fm);font-size:11px;border:1px solid var(--b);color:var(--t2);background:var(--s2)}
+    .dot{width:6px;height:6px;border-radius:50%}.dg{background:var(--green);box-shadow:0 0 6px var(--green)}.dgr{background:var(--t3)}
+    .body{display:flex;flex:1;overflow:hidden}
+    .sidebar{width:210px;flex-shrink:0;background:var(--s);border-right:1px solid var(--b);display:flex;flex-direction:column}
+    .nav{padding:10px 8px;flex:1;display:flex;flex-direction:column;gap:1px}
+    .nl{padding:8px 10px 4px;font-family:var(--fm);font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:1.2px}
+    .ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r2);cursor:pointer;font-size:13px;font-weight:500;color:var(--t2);transition:.15s;user-select:none;border:1px solid transparent}
+    .ni:hover{background:var(--s2);color:var(--t)}.ni.on{background:var(--rbg);color:var(--red);border-color:var(--rbr)}
+    .ni .ic{font-size:14px;width:18px;text-align:center}
+    .nb{margin-left:auto;background:var(--red);color:#fff;border-radius:99px;font-family:var(--fm);font-size:10px;padding:1px 6px;min-width:18px;text-align:center}
+    .sf{padding:12px;border-top:1px solid var(--b)}
+    .si{font-family:var(--fm);font-size:10px;color:var(--t3);line-height:1.8;text-align:center}
+    .main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+    .page{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:18px}
+    .card{background:var(--s);border:1px solid var(--b);border-radius:var(--r);padding:18px}
+    .ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .ct{font-family:var(--fh);font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:1.2px}
+    .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    .sc{background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:14px 16px}
+    .sc.r{border-top:2px solid var(--red)}.sc.a{border-top:2px solid var(--amber)}.sc.g{border-top:2px solid var(--green)}.sc.bl{border-top:2px solid var(--blue)}
+    .sn{font-family:var(--fh);font-size:28px;font-weight:800;line-height:1}
+    .sl{font-family:var(--fm);font-size:10px;color:var(--t2);margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--r2);font-family:var(--fb);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:.15s;white-space:nowrap;flex-shrink:0}
+    .bp{background:var(--red);color:#fff}.bp:hover{background:#e03e3e;box-shadow:0 4px 18px rgba(240,71,71,.35)}
+    .bs{background:var(--s2);color:var(--t);border:1px solid var(--b)}.bs:hover{border-color:var(--b3);background:var(--s3)}
+    .bg{background:var(--gbg);color:var(--green);border:1px solid var(--gbr)}.bg:hover{background:rgba(34,197,94,.18)}
+    .bb{background:var(--bbg);color:var(--blue);border:1px solid var(--bbr)}.bb:hover{background:rgba(59,130,246,.18)}
+    .bgh{background:transparent;color:var(--t2);border:1px solid var(--b)}.bgh:hover{color:var(--t);border-color:var(--b2)}
+    .bsm{padding:5px 11px;font-size:12px}.bxs{padding:3px 9px;font-size:11px;border-radius:5px}
+    .bfw{width:100%;justify-content:center;padding:11px 16px;font-size:14px}
+    .btn:disabled{opacity:.38;cursor:not-allowed;pointer-events:none}
+    .fl{display:flex;flex-direction:column;gap:5px}
+    .lbl{font-family:var(--fm);font-size:11px;color:var(--t2);letter-spacing:.3px}
+    .inp{background:var(--s2);border:1px solid var(--b);color:var(--t);padding:9px 12px;border-radius:var(--r2);font-family:var(--fb);font-size:13px;outline:none;transition:.15s;width:100%}
+    .inp:focus{border-color:var(--blue)}.inp::placeholder{color:var(--t3)}
+    .sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%23555d78' d='M5 7L1 3h8z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+    .ta{resize:vertical;min-height:72px;font-family:var(--fb);line-height:1.5}
+    .fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .sos{width:100%;padding:20px;background:var(--red);color:#fff;border:none;border-radius:var(--r);font-family:var(--fh);font-size:20px;font-weight:800;letter-spacing:3px;cursor:pointer;position:relative;overflow:hidden;transition:.18s}
+    .sos:hover{background:#e03e3e;transform:scale(1.005);box-shadow:0 6px 30px rgba(240,71,71,.45)}
+    .sr{position:absolute;border-radius:50%;border:2px solid rgba(255,255,255,.35);animation:sr 2.2s ease-out infinite}
+    .sr:nth-child(1){width:40%;height:140%;left:30%;top:-20%;animation-delay:0s}
+    .sr:nth-child(2){width:70%;height:200%;left:15%;top:-50%;animation-delay:.6s}
+    @keyframes sr{0%{opacity:.45;transform:scale(.7)}100%{opacity:0;transform:scale(1.5)}}
+    .rp{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-family:var(--fm);font-size:10px;font-weight:500}
+    .rp.HIGH{background:var(--rbg);color:var(--red);border:1px solid var(--rbr)}
+    .rp.MEDIUM{background:var(--abg);color:var(--amber);border:1px solid var(--abr)}
+    .rp.LOW{background:var(--gbg);color:var(--green);border:1px solid var(--gbr)}
+    .rp.FALSE_ALARM,.rp.RESOLVED{background:rgba(85,93,120,.1);color:var(--t2);border:1px solid var(--b2)}
+    .rp.ACTIVE{background:var(--rbg);color:var(--red);border:1px solid var(--rbr)}
+    .rp.PENDING{background:var(--abg);color:var(--amber);border:1px solid var(--abr)}
+    .ei{background:var(--s2);border:1px solid var(--b);border-radius:var(--r2);padding:12px;display:flex;gap:11px;align-items:flex-start;transition:.15s}
+    .ei:hover{border-color:var(--b2)}
+    .eic{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+    .eic.HIGH{background:var(--rbg);border:1px solid var(--rbr)}.eic.MEDIUM{background:var(--abg);border:1px solid var(--abr)}.eic.LOW,.eic.FALSE_ALARM,.eic.RESOLVED{background:var(--s3);border:1px solid var(--b)}
+    .etl{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px}
+    .em{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:5px}
+    .emo{font-family:var(--fm);font-size:11px;color:var(--t2)}
+    .cw{display:flex;flex-direction:column;height:100%;min-height:0}
+    .chd{padding:13px 20px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+    .cai{display:flex;align-items:center;gap:10px}
+    .av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;font-family:var(--fh)}
+    .an{font-family:var(--fh);font-weight:700;font-size:14px}
+    .ast{font-family:var(--fm);font-size:10px;color:var(--green);display:flex;align-items:center;gap:4px;margin-top:1px}
+    .qb{padding:10px 16px;border-bottom:1px solid var(--b);display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0}
+    .qbt{padding:5px 11px;background:var(--s2);border:1px solid var(--b);border-radius:99px;font-size:12px;color:var(--t2);cursor:pointer;transition:.15s;white-space:nowrap}
+    .qbt:hover{border-color:var(--b2);color:var(--t);background:var(--s3)}
+    .msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;min-height:0}
+    .msg{display:flex;gap:9px;align-items:flex-end;animation:mi .2s ease}
+    @keyframes mi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .msg.u{flex-direction:row-reverse}
+    .mav{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-bottom:16px}
+    .mav.ai{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff}.mav.u{background:var(--s3);border:1px solid var(--b2)}
+    .mb{max-width:72%;padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.65}
+    .msg.ai .mb{background:var(--s2);border:1px solid var(--b);border-radius:3px 12px 12px 12px}
+    .msg.u .mb{background:var(--blue);color:#fff;border-radius:12px 3px 12px 12px}
+    .mb.em{border-color:var(--rbr)!important;background:var(--rbg)!important}
+    .mt{font-size:10px;color:var(--t4);font-family:var(--fm);margin-top:3px}.msg.u .mt{text-align:right}
+    .ty{display:flex;align-items:center;gap:4px;padding:9px 13px;background:var(--s2);border:1px solid var(--b);border-radius:3px 12px 12px 12px;width:52px}
+    .td{width:5px;height:5px;border-radius:50%;background:var(--t2);animation:tb 1.1s ease infinite}
+    .td:nth-child(2){animation-delay:.18s}.td:nth-child(3){animation-delay:.36s}
+    @keyframes tb{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-4px);opacity:1}}
+    .cir{padding:12px 16px;border-top:1px solid var(--b);display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
+    .ci{flex:1;background:var(--s2);border:1px solid var(--b);color:var(--t);padding:9px 13px;border-radius:var(--r2);font-family:var(--fb);font-size:13px;outline:none;resize:none;min-height:38px;max-height:110px;transition:.15s;line-height:1.5}
+    .ci:focus{border-color:var(--blue)}.ci::placeholder{color:var(--t3)}
+    .ib{width:38px;height:38px;border-radius:50%;border:1px solid var(--b);background:var(--s2);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:.15s;flex-shrink:0}
+    .ib:hover{border-color:var(--b2);color:var(--t)}
+    .ib.rec{background:var(--red);border-color:var(--red);color:#fff;animation:rp2 1.1s ease infinite}
+    @keyframes rp2{0%,100%{box-shadow:0 0 0 0 rgba(240,71,71,.45)}50%{box-shadow:0 0 0 7px rgba(240,71,71,0)}}
+    .sb{width:38px;height:38px;border-radius:50%;border:none;background:var(--blue);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:.15s}
+    .sb:hover{filter:brightness(1.15)}.sb:disabled{opacity:.35;cursor:not-allowed}
+    .eal{margin:0 16px 10px;background:var(--rbg);border:1px solid var(--rbr);border-radius:var(--r2);padding:9px 14px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--t);animation:mi .3s ease}
+    .aw{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000}
+    .ac{background:var(--s);border:1px solid var(--b);border-radius:var(--r3);padding:36px;width:390px;max-width:95vw}
+    .alo{font-family:var(--fh);font-size:26px;font-weight:800;text-align:center;display:flex;align-items:center;justify-content:center;gap:10px}
+    .asub{color:var(--t2);text-align:center;font-size:13px;margin:8px 0 26px;line-height:1.5}
+    .ata{display:flex;background:var(--s2);border-radius:var(--r2);padding:3px;margin-bottom:22px}
+    .atb{flex:1;padding:6px;text-align:center;border-radius:5px;cursor:pointer;font-size:12px;font-weight:500;color:var(--t2);transition:.15s}
+    .atb.on{background:var(--s);color:var(--t);box-shadow:0 1px 5px rgba(0,0,0,.4)}
+    .af{display:flex;flex-direction:column;gap:13px}
+    .aerr{background:var(--rbg);border:1px solid var(--rbr);color:#ff8080;padding:9px 13px;border-radius:var(--r2);font-size:12px;line-height:1.5}
+    .dh{background:var(--s2);border:1px solid var(--b);border-radius:var(--r2);padding:10px 13px;font-size:12px;color:var(--t2);text-align:center;line-height:1.7}
+    .dh code{font-family:var(--fm);color:var(--t);background:var(--s3);padding:1px 5px;border-radius:4px}
+    .tw{position:fixed;top:62px;right:18px;display:flex;flex-direction:column;gap:7px;z-index:9999;pointer-events:none}
+    .toast{background:var(--s);border:1px solid var(--b);border-radius:var(--r2);padding:10px 14px;display:flex;align-items:center;gap:9px;font-size:12px;min-width:270px;max-width:340px;animation:ti .25s ease;box-shadow:0 8px 28px rgba(0,0,0,.5);pointer-events:all}
+    @keyframes ti{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+    .toast.em{border-color:var(--rbr);background:rgba(240,71,71,.08)}.toast.ok{border-color:var(--gbr)}.toast.info{border-color:var(--bbr)}
+    .ph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:36px;color:var(--t3);font-size:13px;text-align:center}
+    .phi{font-size:34px;opacity:.35}
+    .spin{width:18px;height:18px;border:2px solid var(--b);border-top-color:var(--blue);border-radius:50%;animation:spin .55s linear infinite;flex-shrink:0}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .stitle{font-family:var(--fh);font-size:19px;font-weight:700}
+    .ssub{color:var(--t2);font-size:13px;margin-top:3px}
+    .tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-family:var(--fm);font-size:10px;background:var(--s2);border:1px solid var(--b);color:var(--t2)}
+    .vw{display:flex;align-items:center;gap:3px;height:20px}
+    .vb{width:3px;border-radius:99px;background:var(--red);animation:vb .8s ease infinite}
+    .vb:nth-child(1){height:6px}.vb:nth-child(2){height:14px;animation-delay:.1s}.vb:nth-child(3){height:10px;animation-delay:.2s}.vb:nth-child(4){height:18px;animation-delay:.05s}.vb:nth-child(5){height:8px;animation-delay:.15s}
+    @keyframes vb{0%,100%{transform:scaleY(.6)}50%{transform:scaleY(1)}}
+    /* Leaflet dark overrides */
+    .leaflet-container{background:#0d1117 !important;font-family:var(--fb)}
+    .leaflet-tile{filter:brightness(.7) saturate(.6) hue-rotate(190deg)}
+    .leaflet-control-zoom a{background:var(--s)!important;color:var(--t)!important;border-color:var(--b)!important}
+    .leaflet-popup-content-wrapper{background:var(--s)!important;border:1px solid var(--b)!important;border-radius:var(--r)!important;color:var(--t)!important;box-shadow:0 8px 24px rgba(0,0,0,.5)!important}
+    .leaflet-popup-tip{background:var(--s)!important}
+    /* Chart canvas */
+    .chart-wrap{position:relative;height:200px}
+    /* Progress bars */
+    .pbar{height:6px;background:var(--s3);border-radius:99px;overflow:hidden;margin-top:5px}
+    .pbar-fill{height:100%;border-radius:99px;transition:width .8s ease}
+    @media(max-width:720px){.sidebar{display:none}.g2,.g3,.g4{grid-template-columns:1fr}.page{padding:14px}}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const{useState,useEffect,useRef,useCallback}=React;
+const API='http://localhost:8080';
+const http={
+  post:(p,b,t)=>fetch(API+p,{method:'POST',headers:{'Content-Type':'application/json',...(t?{Authorization:'Bearer '+t}:{})},body:JSON.stringify(b)}).then(r=>r.json()),
+  get:(p,t)=>fetch(API+p,{headers:{...(t?{Authorization:'Bearer '+t}:{})}}).then(r=>r.json()),
+  patch:(p,t)=>fetch(API+p,{method:'PATCH',headers:{...(t?{Authorization:'Bearer '+t}:{})}}).then(r=>r.json()),
+  del:(p,t)=>fetch(API+p,{method:'DELETE',headers:{...(t?{Authorization:'Bearer '+t}:{})}}),
+};
+const fmt=d=>new Date(d).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+const fmtDT=d=>new Date(d).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+const genId=()=>'dev-'+Math.random().toString(36).slice(2,10);
+let _toast=null;
+function Toasts(){
+  const[ts,setTs]=useState([]);
+  _toast=useCallback((m,type='info')=>{const id=Date.now();setTs(t=>[...t,{id,m,type}]);setTimeout(()=>setTs(t=>t.filter(x=>x.id!==id)),4500);},[]);
+  return(<div className="tw">{ts.map(t=><div key={t.id} className={`toast ${t.type==='emergency'?'em':t.type==='success'?'ok':'info'}`}><span style={{fontSize:15}}>{t.type==='emergency'?'🚨':t.type==='success'?'✅':'ℹ️'}</span><span>{t.m}</span></div>)}</div>);
+}
+const toast=(m,t)=>_toast&&_toast(m,t);
+
+function usePagination(items, pageSize=10){
+  const[page,setPage]=useState(0);
+  const total=Math.ceil(items.length/pageSize);
+  const paged=items.slice(page*pageSize,(page+1)*pageSize);
+  const reset=()=>setPage(0);
+  return{paged,page,setPage,total,reset,hasPrev:page>0,hasNext:page<total-1};
+}
+
+function Pagination({page,total,onPrev,onNext,size}){
+  if(total<=1)return null;
+  return(
+    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 0',borderTop:'1px solid var(--b)',marginTop:8}}>
+      <button className="btn bgh bsm" onClick={onPrev} disabled={page===0}>← Prev</button>
+      <span style={{fontFamily:'var(--fm)',fontSize:11,color:'var(--t2)'}}>Page {page+1} of {total} · {size} items</span>
+      <button className="btn bgh bsm" onClick={onNext} disabled={page===total-1}>Next →</button>
+    </div>
+  );
+}
+
+function Auth({ onAuth }) {
+  const [tab, setTab] = useState('login');
+  const [f, setF] = useState({ name: '', contact: '', password: '', role: 'USER', language: 'en', otp: '', newPassword: '' });
+  const [loading, setL] = useState(false);
+  const [err, setErr] = useState('');
+  const [msg, setMsg] = useState('');
+  const did = useRef(localStorage.getItem('deviceId') || genId());
+
+  useEffect(() => { localStorage.setItem('deviceId', did.current); }, []);
+  const set = k => e => setF(f => ({ ...f, [k]: e.target.value }));
+
+  const go = async () => {
+    setL(true); setErr(''); setMsg('');
+    try {
+      let res;
+      if (tab === 'login') {
+        res = await http.post('/api/auth/login', { contact: f.contact, password: f.password });
+        if (res.token) { onAuth({...res, language: f.language}); return; }
+      }
+      else if (tab === 'register') {
+        res = await http.post('/api/auth/register', { name: f.name, contact: f.contact, password: f.password, deviceId: did.current, preferredLanguage: f.language, role: f.role });
+        if (res.token) { onAuth({...res, language: f.language}); return; }
+      }
+      else if (tab === 'forgot') {
+        res = await http.post('/api/auth/forgot-password', { contact: f.contact });
+        if (res.message) { setMsg('OTP sent to console! Check IntelliJ.'); setTab('reset'); setL(false); return; }
+      }
+      else if (tab === 'reset') {
+        res = await http.post('/api/auth/reset-password', { contact: f.contact, otp: f.otp, newPassword: f.newPassword });
+        if (res.message) { setMsg('Password reset done! Login now.'); setTab('login'); setL(false); return; }
+      }
+      if (res && (res.error || res.message)) setErr(res.error || res.message);
+    } catch (e) { setErr('Connection Error. Backend started?'); }
+    setL(false);
+  };
+
+  return (
+    <div className="aw"><div className="ac">
+      <div className="alo"><div className="lp" />ARIA</div>
+      <div className="asub">AI Emergency Response Ecosystem</div>
+
+      {['login', 'register', 'forgot'].includes(tab) && (
+        <div className="ata">
+          <div className={`atb${tab === 'login' ? ' on' : ''}`} onClick={() => { setTab('login'); setErr(''); setMsg(''); }}>Login</div>
+          <div className={`atb${tab === 'register' ? ' on' : ''}`} onClick={() => { setTab('register'); setErr(''); setMsg(''); }}>Register</div>
+        </div>
+      )}
+
+      <div className="af">
+        {err && <div className="aerr">{err}</div>}
+        {msg && <div style={{background: 'var(--gbg)', color: 'var(--green)', padding: '10px', borderRadius: '5px', fontSize: '12px'}}>{msg}</div>}
+
+        {tab === 'register' && (
+          <>
+            <div className="fl"><label className="lbl">FULL NAME</label><input className="inp" value={f.name} onChange={set('name')} /></div>
+            <div className="fl"><label className="lbl">EMAIL OR PHONE</label><input className="inp" placeholder="email@ext.com or 9876543210" value={f.contact} onChange={set('contact')} /></div>
+            <div className="fl"><label className="lbl">PASSWORD</label><input className="inp" type="password" value={f.password} onChange={set('password')} /></div>
+
+            <div className="fr">
+              <div className="fl">
+                <label className="lbl">REGISTER AS</label>
+                <select className="inp sel" value={f.role} onChange={set('role')}>
+                  <option value="USER">Patient / User</option>
+                  <option value="DOCTOR">Doctor</option>
+                  <option value="POLICE">Police</option>
+                  <option value="AMBULANCE">Ambulance</option>
+                </select>
+              </div>
+              <div className="fl">
+                <label className="lbl">LANGUAGE</label>
+                <select className="inp sel" value={f.language} onChange={set('language')}>
+                  <option value="en">English</option><option value="hi">Hindi</option>
+                  <option value="bn">Bengali</option>
+                </select>
+              </div>
+            </div>
+          </>
+        )}
+
+        {tab === 'login' && (
+          <>
+            <div className="fl"><label className="lbl">EMAIL OR PHONE</label><input className="inp" value={f.contact} onChange={set('contact')} /></div>
+            <div className="fl"><label className="lbl">PASSWORD</label><input className="inp" type="password" value={f.password} onChange={set('password')} /></div>
+            <div style={{textAlign: 'right', fontSize: '11px', color: 'var(--blue)', cursor: 'pointer'}} onClick={() => setTab('forgot')}>Forgot Password?</div>
+          </>
+        )}
+
+        {tab === 'forgot' && (
+          <div className="fl"><label className="lbl">ENTER EMAIL OR PHONE</label><input className="inp" placeholder="To receive OTP" value={f.contact} onChange={set('contact')} /></div>
+        )}
+        {tab === 'reset' && (
+          <>
+            <div className="fl"><label className="lbl">ENTER OTP</label><input className="inp" placeholder="6-digit OTP" value={f.otp} onChange={set('otp')} /></div>
+            <div className="fl"><label className="lbl">NEW PASSWORD</label><input className="inp" type="password" value={f.newPassword} onChange={set('newPassword')} /></div>
+          </>
+        )}
+
+        <button className="btn bp bfw" onClick={go} disabled={loading} style={{ marginTop: 4 }}>
+          {loading ? <div className="spin" /> : (tab === 'forgot' ? 'Send OTP' : tab === 'reset' ? 'Reset Password' : 'Continue')}
+        </button>
+      </div>
+    </div></div>
+  );
+}
+
+function Dashboard({auth,wsAlerts,emergencies,stats}){
+  const chartRef=useRef();const chartInst=useRef();
+  useEffect(()=>{
+    if(!chartRef.current)return;
+    chartInst.current?.destroy();
+    const h=emergencies.slice(0,7).map((e,i)=>({label:fmtDT(e.createdAt||new Date()),val:e.riskLevel==='HIGH'?3:e.riskLevel==='MEDIUM'?2:1}));
+    chartInst.current=new Chart(chartRef.current,{
+      type:'bar',
+      data:{labels:h.map(x=>x.label),datasets:[{label:'Risk Level',data:h.map(x=>x.val),backgroundColor:h.map(x=>x.val===3?'rgba(240,71,71,.7)':x.val===2?'rgba(245,158,11,.7)':'rgba(34,197,94,.7)'),borderRadius:4,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>['','LOW','MEDIUM','HIGH'][c.raw]||c.raw}}},scales:{x:{ticks:{color:'#555d78',font:{size:9}},grid:{color:'#1f2230'}},y:{ticks:{color:'#555d78',stepSize:1,callback:v=>['','LOW','MED','HIGH'][v]||''},grid:{color:'#1f2230'},min:0,max:3}}}
+    });
+    return()=>chartInst.current?.destroy();
+  },[emergencies]);
+  const high=emergencies.filter(e=>e.riskLevel==='HIGH'&&e.status==='ACTIVE').length;
+  const res=emergencies.filter(e=>e.status==='RESOLVED').length;
+  const rate=stats?stats.resolutionRatePercent:0;
+  return(
+    <div className="page">
+      <div><div className="stitle">Overview{auth.name?', '+auth.name.split(' ')[0]:''} 👋</div><div className="ssub">Emergency network live status</div></div>
+      <DutyToggle auth={auth||{}} token={auth?.token}/>
+      <div className="g4">
+        <div className="sc r"><div className="sn" style={{color:'var(--red)'}}>{high}</div><div className="sl">High Risk Active</div></div>
+        <div className="sc a"><div className="sn" style={{color:'var(--amber)'}}>{emergencies.filter(e=>e.riskLevel==='MEDIUM').length}</div><div className="sl">Medium Risk</div></div>
+        <div className="sc g"><div className="sn" style={{color:'var(--green)'}}>{res}</div><div className="sl">Resolved</div></div>
+        <div className="sc bl"><div className="sn" style={{color:'var(--blue)'}}>{wsAlerts.length}</div><div className="sl">WS Alerts</div></div>
+      </div>
+      {stats&&(stats.totalDoctors>0||stats.totalPolice>0||stats.totalAmbulances>0)&&(
+        <div className="g3">
+          <div className="sc bl"><div className="sn" style={{color:'var(--blue)'}}>{stats.totalDoctors||0}</div><div className="sl">🩺 Doctors</div></div>
+          <div className="sc r"><div className="sn" style={{color:'var(--purple)'}}>{stats.totalPolice||0}</div><div className="sl">👮 Police</div></div>
+          <div className="sc r"><div className="sn" style={{color:'var(--red)'}}>{stats.totalAmbulances||0}</div><div className="sl">🚑 Ambulances</div></div>
+        </div>
+      )}
+      {stats&&(
+        <div className="g3">
+          <div className="card">
+            <div className="ch"><span className="ct">Resolution Rate</span></div>
+            <div style={{fontFamily:'var(--fh)',fontSize:32,fontWeight:800,color:'var(--green)'}}>{rate}%</div>
+            <div className="pbar" style={{marginTop:10}}><div className="pbar-fill" style={{width:rate+'%',background:'var(--green)'}}/></div>
+          </div>
+          <div className="card">
+            <div className="ch"><span className="ct">False Alarm Rate</span></div>
+            <div style={{fontFamily:'var(--fh)',fontSize:32,fontWeight:800,color:'var(--amber)'}}>{stats.falseAlarmRatePercent}%</div>
+            <div className="pbar" style={{marginTop:10}}><div className="pbar-fill" style={{width:stats.falseAlarmRatePercent+'%',background:'var(--amber)'}}/></div>
+          </div>
+          <div className="card">
+            <div className="ch"><span className="ct">Notifications (24h)</span></div>
+            <div style={{fontFamily:'var(--fh)',fontSize:32,fontWeight:800,color:'var(--blue)'}}>{stats.notificationsLast24h}</div>
+            <div style={{fontSize:11,color:'var(--t2)',marginTop:8,fontFamily:'var(--fm)'}}>{stats.deliveredNotifications} total delivered</div>
+          </div>
+        </div>
+      )}
+      <div className="card">
+        <div className="ch"><span className="ct">Risk Level Timeline</span><span className="tag">{emergencies.length} incidents</span></div>
+        <div className="chart-wrap"><canvas ref={chartRef}/></div>
+      </div>
+      <div className="g2">
+        <div className="card">
+          <div className="ch"><span className="ct">System Status</span></div>
+          {[['AI Analysis Engine','ONLINE','var(--green)'],['WebSocket Server','ONLINE','var(--green)'],['Location Service','ACTIVE','var(--green)'],['Rate Limiter','ENABLED','var(--blue)'],['H2 Database','CONNECTED','var(--green)']].map(([l,s,c])=>(
+            <div key={l} style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:12,padding:'6px 0',borderBottom:'1px solid var(--b)'}}>
+              <span style={{color:'var(--t2)'}}>{l}</span><span style={{fontFamily:'var(--fm)',fontSize:10,color:c}}>{s}</span>
+            </div>
+          ))}
+        </div>
+        <div className="card">
+          <div className="ch"><span className="ct">Recent Incidents</span></div>
+          {emergencies.length===0?<div className="ph"><div className="phi">📋</div>No emergencies yet</div>:(
+            <div style={{display:'flex',flexDirection:'column',gap:7}}>
+              {emergencies.slice(0,4).map(e=>(
+                <div key={e.id} className="ei">
+                  <div className={`eic ${e.riskLevel}`}>{e.riskLevel==='HIGH'?'🚨':e.riskLevel==='MEDIUM'?'⚠️':'ℹ️'}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div className="etl">#{e.id} — {e.message||'No description'}</div>
+                    <div className="em"><span className={`rp ${e.riskLevel}`}>{e.riskLevel}</span><span className={`rp ${e.status}`}>{e.status}</span></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SOSPage({auth,token,onNew}){
+  const[f,setF]=useState({message:'',latitude:'',longitude:'',fallDetected:false,movement:'UNKNOWN',userResponse:'NO_RESPONSE'});
+  const[loading,setL]=useState(false);const[result,setR]=useState(null);const[locating,setLoc]=useState(false);
+  const set=k=>e=>setF(p=>({...p,[k]:e.target.type==='checkbox'?e.target.checked:e.target.value}));
+  const gps=()=>{setLoc(true);navigator.geolocation?.getCurrentPosition(p=>{setF(f=>({...f,latitude:p.coords.latitude.toFixed(6),longitude:p.coords.longitude.toFixed(6)}));setLoc(false);toast('Location obtained ✓','success');},()=>{toast('Location unavailable','info');setLoc(false);});};
+  const submit=async()=>{
+    setL(true);setR(null);
+    try{const res=await http.post('/api/emergency/report',{...f,latitude:parseFloat(f.latitude)||0,longitude:parseFloat(f.longitude)||0,deviceId:auth.deviceId},token);setR(res);onNew&&onNew(res);toast(`Emergency reported — ${res.riskLevel} risk`,res.riskLevel==='HIGH'?'emergency':'success');}
+    catch(e){toast('Failed to report — check server','emergency');}
+    setL(false);
+  };
+  const rc={HIGH:'var(--red)',MEDIUM:'var(--amber)',LOW:'var(--green)',FALSE_ALARM:'var(--t2)'};
+  return(
+    <div className="page">
+      <div><div className="stitle">SOS Emergency Report</div><div className="ssub">Trigger an immediate SOS or submit a detailed report</div></div>
+      <div style={{position:'relative'}}><div className="sr"/><div className="sr"/><button className="sos" onClick={submit} disabled={loading}>{loading?'⏳  PROCESSING…':'🆘  TRIGGER  SOS'}</button></div>
+      {result&&(
+        <div className="card" style={{borderColor:(rc[result.riskLevel]||'var(--b)')+'44'}}>
+          <div style={{display:'flex',gap:14,alignItems:'flex-start'}}>
+            <div style={{fontSize:28,flexShrink:0}}>{result.status==='FALSE_ALARM'?'✅':result.riskLevel==='HIGH'?'🚨':'⚠️'}</div>
+            <div style={{flex:1}}><div style={{fontFamily:'var(--fh)',fontSize:14,fontWeight:700,marginBottom:8}}>{result.message}</div>
+              <div style={{display:'flex',gap:7,flexWrap:'wrap'}}><span className={`rp ${result.riskLevel}`}>{result.riskLevel}</span><span className="tag">#{result.emergencyId}</span><span className="tag">👥 {result.nearbyUsersAlerted} alerted</span><span className="tag">{result.aiAction}</span></div>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="card">
+        <div className="ch"><span className="ct">Detailed Report</span></div>
+        <div style={{display:'flex',flexDirection:'column',gap:13}}>
+          <div className="fl"><label className="lbl">SITUATION DESCRIPTION</label><textarea className="inp ta" placeholder="Describe what happened…" value={f.message} onChange={set('message')}/></div>
+          <div className="fr"><div className="fl"><label className="lbl">LATITUDE</label><input className="inp" placeholder="e.g. 27.1767" value={f.latitude} onChange={set('latitude')}/></div><div className="fl"><label className="lbl">LONGITUDE</label><input className="inp" placeholder="e.g. 78.0081" value={f.longitude} onChange={set('longitude')}/></div></div>
+          <button className="btn bgh bsm" onClick={gps} disabled={locating} style={{alignSelf:'flex-start'}}>{locating?<><div className="spin"/><span>Locating…</span></>:<>📍 Use GPS Location</>}</button>
+          <div className="fr">
+            <div className="fl"><label className="lbl">MOVEMENT</label><select className="inp sel" value={f.movement} onChange={set('movement')}>{['UNKNOWN','STATIONARY','WALKING','RUNNING'].map(v=><option key={v}>{v}</option>)}</select></div>
+            <div className="fl"><label className="lbl">USER RESPONSE</label><select className="inp sel" value={f.userResponse} onChange={set('userResponse')}>{['NO_RESPONSE','NEED_HELP','ARE_YOU_OK'].map(v=><option key={v}>{v}</option>)}</select></div>
+          </div>
+          <label style={{display:'flex',alignItems:'center',gap:9,cursor:'pointer',fontSize:13}}><input type="checkbox" checked={f.fallDetected} onChange={set('fallDetected')} style={{width:15,height:15,accentColor:'var(--red)'}}/>Fall detected by sensor / accelerometer</label>
+          <button className="btn bp bsm" onClick={submit} disabled={loading} style={{alignSelf:'flex-start'}}>{loading?<><div className="spin"/>Submitting…</>:<>📤 Submit Report</>}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ChatPage({auth,token}){
+  const[msgs,setMsgs]=useState([{role:'ai',content:"Hello! I'm ARIA — your AI Emergency Assistant. I help with first-aid guidance, safety tips, and emergency reporting.\n\nUse 🎤 for voice input. How can I help?",time:new Date()}]);
+  const[inp,setInp]=useState('');const[loading,setL]=useState(false);const[rec,setRec]=useState(false);const[speaking,setSpeaking]=useState(false);const[emAlert,setEm]=useState(null);
+  const botRef=useRef();const recRef=useRef();const sid=auth.deviceId;
+  useEffect(()=>{botRef.current?.scrollIntoView({behavior:'smooth'});},[msgs,loading]);
+  const send=async(text)=>{
+    const m=(text||inp).trim();if(!m)return;setInp('');
+    setMsgs(ms=>[...ms,{role:'u',content:m,time:new Date()}]);setL(true);
+    try{const res=await http.post('/api/chat/message',{sessionId:sid,message:m},token);const reply=res.reply||'Could not process that.';setMsgs(ms=>[...ms,{role:'ai',content:reply,time:new Date(),em:res.isEmergency}]);if(res.isEmergency){setEm(reply);toast('⚠️ ARIA detected a potential emergency!','emergency');}doSpeak(reply);}
+    catch(e){setMsgs(ms=>[...ms,{role:'ai',content:'Connection error. Check server on port 8080.',time:new Date()}]);}
+    setL(false);
+  };
+  const doSpeak=text=>{if(!window.speechSynthesis)return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.slice(0,280));u.rate=1.05;u.pitch=1.05;u.volume=0.85;const vs=window.speechSynthesis.getVoices();const pref=vs.find(v=>v.name.includes('Samantha')||v.name.includes('UK English Female')||v.name.includes('Female'));if(pref)u.voice=pref;u.onstart=()=>setSpeaking(true);u.onend=()=>setSpeaking(false);window.speechSynthesis.speak(u);};
+  const toggleVoice=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toast('Voice not supported','info');return;}if(rec){recRef.current?.stop();setRec(false);return;}const r=new SR();recRef.current=r;r.lang='en-IN';r.continuous=false;r.interimResults=false;r.onresult=e=>send(e.results[0][0].transcript);r.onend=()=>setRec(false);r.onerror=()=>{setRec(false);};r.start();setRec(true);toast('🎤 Listening…','info');};
+  const clear=async()=>{await http.del('/api/chat/clear?sessionId='+sid,token);setMsgs([{role:'ai',content:'Chat cleared. How can I help?',time:new Date()}]);setEm(null);};
+  const quick=['I need help','I fell down','Chest pain','Nearest hospital?','First aid for burn','I feel dizzy'];
+  return(
+    <div className="cw">
+      <div className="chd">
+        <div className="cai"><div className="av">A</div><div><div className="an">ARIA — Emergency AI Assistant</div><div className="ast"><div className="dot dg"/>{speaking?<><div className="vw"><div className="vb"/><div className="vb"/><div className="vb"/><div className="vb"/><div className="vb"/></div><span>Speaking…</span></>:'Online · Powered by Claude'}</div></div></div>
+        <div style={{display:'flex',gap:7}}>{speaking&&<button className="btn bgh bsm" onClick={()=>{window.speechSynthesis?.cancel();setSpeaking(false);}}>🔇 Stop</button>}<button className="btn bgh bsm" onClick={clear}>🗑 Clear</button></div>
+      </div>
+      <div className="qb">{quick.map(q=><div key={q} className="qbt" onClick={()=>send(q)}>{q}</div>)}</div>
+      {emAlert&&(<div className="eal"><span style={{fontSize:16}}>🚨</span><div style={{flex:1}}><div style={{fontWeight:500,marginBottom:2}}>Emergency detected</div><div style={{color:'var(--t2)',fontSize:11}}>ARIA flagged a potential emergency. Use SOS for immediate help.</div></div><button className="btn bxs" style={{background:'var(--red)',color:'#fff',border:'none'}} onClick={()=>setEm(null)}>✕</button></div>)}
+      <div className="msgs">{msgs.map((m,i)=><div key={i} className={`msg ${m.role}`}><div className={`mav ${m.role}`}>{m.role==='ai'?'A':'U'}</div><div><div className={`mb${m.em?' em':''}`} style={{whiteSpace:'pre-wrap'}}>{m.content}</div><div className="mt">{fmt(m.time)}</div></div></div>)}{loading&&<div className="msg ai"><div className="mav ai">A</div><div className="ty"><div className="td"/><div className="td"/><div className="td"/></div></div>}<div ref={botRef}/></div>
+      <div className="cir">
+        <button className={`ib${rec?' rec':''}`} onClick={toggleVoice}>{rec?'⏹':'🎤'}</button>
+        <textarea className="ci" placeholder="Type a message or use voice… (Enter to send)" value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}} rows={1}/>
+        <button className="sb" onClick={()=>send()} disabled={!inp.trim()||loading}>➤</button>
+      </div>
+    </div>
+  );
+}
+
+
+function PaginatedEmList({ems,resolve}){
+  const{paged,page,setPage,total,hasPrev,hasNext}=usePagination(ems,15);
+  const icons={HIGH:'🚨',MEDIUM:'⚠️',LOW:'ℹ️',FALSE_ALARM:'✅',RESOLVED:'✅'};
+  return(
+    <>
+      <div style={{display:'flex',flexDirection:'column',gap:7}}>
+        {paged.map(e=><div key={e.id} className="ei">
+          <div className={`eic ${e.riskLevel}`}>{icons[e.riskLevel]||'❓'}</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div className="etl">#{e.id} — {e.message||'No description'}</div>
+            <div className="em"><span className={`rp ${e.riskLevel}`}>{e.riskLevel}</span><span className={`rp ${e.status}`}>{e.status}</span>{e.latitude&&<span className="emo">📍 {parseFloat(e.latitude).toFixed(3)}, {parseFloat(e.longitude).toFixed(3)}</span>}{e.aiAction&&<span className="emo">{e.aiAction}</span>}</div>
+          </div>
+          {e.status==='ACTIVE'&&<button className="btn bg bxs" onClick={()=>resolve(e.id)}>Resolve</button>}
+        </div>)}
+      </div>
+      <Pagination page={page} total={total} onPrev={()=>setPage(p=>p-1)} onNext={()=>setPage(p=>p+1)} size={ems.length}/>
+    </>
+  );
+}
+
+function AlertsPage({wsAlerts,token}){
+  const[ems,setEms]=useState([]);const[loading,setL]=useState(false);
+  const load=async()=>{setL(true);try{const d=await http.get('/api/emergency/all',token);if(Array.isArray(d))setEms([...d].reverse());}catch(e){}setL(false);};
+  useEffect(()=>{load();},[]);
+  const resolve=async id=>{try{await http.patch('/api/emergency/'+id+'/resolve',token);setEms(es=>es.map(e=>e.id===id?{...e,status:'RESOLVED'}:e));toast('Resolved ✓','success');}catch(e){toast('Failed','info');}};
+  const icons={HIGH:'🚨',MEDIUM:'⚠️',LOW:'ℹ️',FALSE_ALARM:'✅',RESOLVED:'✅'};
+  return(
+    <div className="page">
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><div><div className="stitle">Alert Feed</div><div className="ssub">Emergencies and live WebSocket alerts</div></div><button className="btn bgh bsm" onClick={load}>↺ Refresh</button></div>
+      {wsAlerts.length>0&&(<div className="card" style={{borderColor:'var(--rbr)'}}><div className="ch"><span className="ct">🔴 Live WebSocket Alerts</span><span className="tag">{wsAlerts.length}</span></div><div style={{display:'flex',flexDirection:'column',gap:7}}>{wsAlerts.slice().reverse().slice(0,8).map((a,i)=><div key={i} className="ei"><div className={`eic ${a.riskLevel}`}>{icons[a.riskLevel]||'⚡'}</div><div style={{flex:1,minWidth:0}}><div className="etl">{a.message}</div><div className="em"><span className={`rp ${a.riskLevel}`}>{a.riskLevel}</span>{a.distanceMeters&&<span className="emo">📍 {Math.round(a.distanceMeters)}m</span>}{a.sentAt&&<span className="emo">{fmt(a.sentAt)}</span>}</div></div></div>)}</div></div>)}
+      <div className="card"><div className="ch"><span className="ct">All Emergencies</span><span className="tag">{ems.length}</span></div>
+        {loading?<div style={{display:'flex',justifyContent:'center',padding:28}}><div className="spin"/></div>
+        :ems.length===0?<div className="ph"><div className="phi">📋</div>No emergencies yet</div>
+        :<PaginatedEmList ems={ems} resolve={resolve}/>}
+      </div>
+    </div>
+  );
+}
+
+function MapPage({auth,token,emergencies}){
+  const[trail,setTrail]=useState([]);
+  const mapRef=useRef();const mapInst=useRef();const[loc,setLoc]=useState(null);const[upd,setUpd]=useState(false);
+  useEffect(()=>{
+    navigator.geolocation?.getCurrentPosition(p=>setLoc({lat:p.coords.latitude,lon:p.coords.longitude}));
+    if(token){
+      http.get('/api/users/me/history',token)
+        .then(d=>{if(Array.isArray(d))setTrail(d);})
+        .catch(()=>{});
+    }
+  },[]);
+  useEffect(()=>{
+    if(!mapRef.current||mapInst.current)return;
+    const map=L.map(mapRef.current,{center:[27.1767,78.0081],zoom:13,zoomControl:true});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+    mapInst.current=map;
+    return()=>{map.remove();mapInst.current=null;};
+  },[]);
+  useEffect(()=>{
+    const map=mapInst.current;if(!map)return;
+    map.eachLayer(l=>{if(l instanceof L.Marker||l instanceof L.Circle)map.removeLayer(l);});
+    if(loc){
+      const userIcon=L.divIcon({html:'<div style="width:14px;height:14px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4)"></div>',iconSize:[14,14],iconAnchor:[7,7]});
+      L.marker([loc.lat,loc.lon],{icon:userIcon}).addTo(map).bindPopup('<b style="color:#111">You are here</b>');
+      L.circle([loc.lat,loc.lon],{radius:500,color:'#3b82f6',fillColor:'#3b82f6',fillOpacity:.08,weight:1}).addTo(map);
+    }
+    if(trail.length>=2){
+      const pts=trail.map(h=>[h.latitude,h.longitude]);
+      L.polyline(pts,{color:'#3b82f6',weight:2,opacity:.6,dashArray:'4 4'}).addTo(map);
+      const trailIcon=L.divIcon({html:'<div style="width:8px;height:8px;border-radius:50%;background:#3b82f6;border:2px solid #fff"></div>',iconSize:[8,8],iconAnchor:[4,4]});
+      pts.forEach(p=>L.marker(p,{icon:trailIcon}).addTo(map));
+    }
+    emergencies.filter(e=>e.latitude&&e.longitude&&e.status==='ACTIVE').forEach(e=>{
+      const col=e.riskLevel==='HIGH'?'#f04747':e.riskLevel==='MEDIUM'?'#f59e0b':'#22c55e';
+      const icon=L.divIcon({html:`<div style="width:28px;height:28px;border-radius:50%;background:${col};border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 10px rgba(0,0,0,.4)">${e.riskLevel==='HIGH'?'🚨':'⚠️'}</div>`,iconSize:[28,28],iconAnchor:[14,14]});
+      L.marker([e.latitude,e.longitude],{icon}).addTo(map).bindPopup(`<b style="color:#111">#${e.id}</b><br/><span style="color:#333">${e.message||'Emergency'}</span><br/><span style="color:${col};font-weight:600">${e.riskLevel}</span>`);
+    });
+  },[loc,emergencies,trail]);
+  const push=async()=>{if(!loc)return;setUpd(true);try{await http.post('/api/location/update',{latitude:loc.lat,longitude:loc.lon,deviceId:auth.deviceId},token);toast('Location pushed ✓','success');}catch(e){}setUpd(false);};
+  return(
+    <div className="page">
+      <div><div className="stitle">Live Map</div><div className="ssub">Your GPS position and active emergency markers (Leaflet + OpenStreetMap)</div></div>
+      <div ref={mapRef} style={{height:360,borderRadius:'var(--r)',border:'1px solid var(--b)',overflow:'hidden'}}/>
+      <div className="card"><div className="ch"><span className="ct">Map Controls</span></div>
+        <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+          <button className="btn bb bsm" onClick={push} disabled={upd}>{upd?<><div className="spin"/>Updating…</>:<>📡 Push Location</>}</button>
+          <button className="btn bgh bsm" onClick={()=>navigator.geolocation?.getCurrentPosition(p=>{setLoc({lat:p.coords.latitude,lon:p.coords.longitude});toast('GPS refreshed','success');})} >🔄 Refresh GPS</button>
+          <span style={{fontSize:11,color:'var(--t2)',fontFamily:'var(--fm)'}}>{loc?`${loc.lat.toFixed(5)}° N, ${loc.lon.toFixed(5)}° E`:'No GPS fix'}</span>
+          <span className="tag" style={{marginLeft:'auto'}}>{emergencies.filter(e=>e.status==='ACTIVE').length} active pins</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminPage({token}){
+  const[stats,setStats]=useState(null);const[users,setUsers]=useState([]);
+  useEffect(()=>{http.get('/api/admin/stats',token).then(s=>setStats(s)).catch(()=>{});http.get('/api/admin/users',token).then(u=>Array.isArray(u)&&setUsers(u)).catch(()=>{});},[]);
+  const chartRef=useRef();const chartInst=useRef();
+  useEffect(()=>{
+    if(!chartRef.current||!stats)return;
+    chartInst.current?.destroy();
+    chartInst.current=new Chart(chartRef.current,{type:'doughnut',data:{labels:['High','Medium','Low'],datasets:[{data:[stats.highRiskCount||0,stats.mediumRiskCount||0,stats.lowRiskCount||0],backgroundColor:['rgba(240,71,71,.8)','rgba(245,158,11,.8)','rgba(34,197,94,.8)'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9298b0',font:{size:11}},position:'bottom'}}}});
+    return()=>chartInst.current?.destroy();
+  },[stats]);
+  return(
+    <div className="page">
+      <div><div className="stitle">Admin Panel</div><div className="ssub">System management — requires ADMIN role (admin@aria.com)</div></div>
+      {!stats?<div className="ph"><div className="phi">🔒</div>Admin access required — login as admin@aria.com / admin123</div>:(
+        <>
+          <div className="g4">
+            <div className="sc r"><div className="sn" style={{color:'var(--red)'}}>{stats.totalEmergencies||0}</div><div className="sl">Total Emergencies</div></div>
+            <div className="sc a"><div className="sn" style={{color:'var(--amber)'}}>{stats.activeEmergencies||0}</div><div className="sl">Active</div></div>
+            <div className="sc g"><div className="sn" style={{color:'var(--green)'}}>{stats.totalUsers||0}</div><div className="sl">Total Users</div></div>
+            <div className="sc bl"><div className="sn" style={{color:'var(--blue)'}}>{stats.totalAlerts||0}</div><div className="sl">Alerts Sent</div></div>
+          </div>
+          <div className="g2">
+            <div className="card"><div className="ch"><span className="ct">Risk Distribution</span></div><div className="chart-wrap"><canvas ref={chartRef}/></div></div>
+            <div className="card"><div className="ch"><span className="ct">Key Metrics</span></div>
+              {[['Resolution Rate',stats.resolutionRatePercent+'%','var(--green)'],['False Alarm Rate',stats.falseAlarmRatePercent+'%','var(--amber)'],['Notifs (24h)',stats.notificationsLast24h,'var(--blue)'],['Total Delivered',stats.deliveredNotifications,'var(--t)']].map(([l,v,c])=>(
+                <div key={l} style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:12,padding:'7px 0',borderBottom:'1px solid var(--b)'}}>
+                  <span style={{color:'var(--t2)'}}>{l}</span><span style={{fontFamily:'var(--fh)',fontWeight:700,fontSize:15,color:c}}>{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="card"><div className="ch"><span className="ct">Users</span><span className="tag">{users.length}</span></div>
+            {users.length===0?<div className="ph"><div className="phi">👥</div>No users</div>:(
+              <div style={{display:'flex',flexDirection:'column',gap:7}}>{users.map(u=>(
+                <div key={u.id} className="ei">
+                  <div style={{width:34,height:34,borderRadius:'50%',background:'var(--s3)',border:'1px solid var(--b2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontFamily:'var(--fh)',fontWeight:700,flexShrink:0}}>{(u.name||u.email||'G')[0].toUpperCase()}</div>
+                  <div style={{flex:1,minWidth:0}}><div className="etl">{u.name||'Guest User'}</div><div className="em"><span className="tag" style={{fontSize:10}}>{u.role}</span><span className="emo">{u.email||'no email'}</span></div></div>
+                </div>
+              ))}</div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+
+function ApiPage(){
+  const apis=[
+    {group:"🗺️ Custom Maps API (FREE, no key)", color:"var(--blue)", endpoints:[
+      {m:"GET",p:"/api/maps/tiles","d":"OSM tile server config"},
+      {m:"GET",p:"/api/maps/reverse?lat=&lon=","d":"Coordinates → address"},
+      {m:"GET",p:"/api/maps/geocode?q=","d":"Text → coordinates"},
+      {m:"GET",p:"/api/maps/places/nearby?lat=&lon=&type=hospital","d":"Find hospitals, pharmacies, police"},
+      {m:"GET",p:"/api/maps/route?fromLat=&fromLon=&toLat=&toLon=","d":"Distance + ETA calculator"},
+    ]},
+    {group:"📡 Custom WebRTC Signaling (no Twilio)", color:"var(--green)", endpoints:[
+      {m:"POST",p:"/api/webrtc/room","d":"Create video/voice call room"},
+      {m:"GET",p:"/api/webrtc/room/{id}","d":"Room details + ICE servers"},
+      {m:"POST",p:"/api/webrtc/signal/offer","d":"Send SDP offer"},
+      {m:"POST",p:"/api/webrtc/signal/answer","d":"Send SDP answer"},
+      {m:"POST",p:"/api/webrtc/signal/ice","d":"Relay ICE candidate"},
+      {m:"POST",p:"/api/webrtc/end","d":"End call"},
+    ]},
+    {group:"🚨 Emergency", color:"var(--red)", endpoints:[
+      {m:"POST",p:"/api/emergency/report","d":"Report emergency (AI triage)"},
+      {m:"GET",p:"/api/emergency/active","d":"Active emergencies"},
+      {m:"GET",p:"/api/emergency/search","d":"Multi-filter search"},
+      {m:"PATCH",p:"/api/emergency/{id}/resolve","d":"Resolve"},
+    ]}
+  ];
+  const[expanded,setEx]=useState(new Set(['🗺️ Custom Maps API (FREE, no key)']));
+  const toggle=g=>setEx(p=>{const n=new Set(p);n.has(g)?n.delete(g):n.add(g);return n;});
+  return(
+    <div className="page">
+      <div><div className="stitle">API Reference</div>
+        <div className="ssub">All custom built-in APIs</div>
+      </div>
+      <div className="card" style={{background:'var(--gbg)',border:'1px solid var(--gbr)'}}>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <span style={{fontSize:11,fontWeight:600,color:'var(--green)'}}>✅ OpenStreetMap Maps</span>
+          <span style={{fontSize:11,fontWeight:600,color:'var(--green)'}}>✅ Custom Push</span>
+        </div>
+        <div style={{fontSize:11,color:'var(--t2)',marginTop:8}}>Base URL: <code style={{fontFamily:'var(--fm)'}}>{API}</code></div>
+      </div>
+      {apis.map(group=>(
+        <div key={group.group} className="card" style={{padding:0,overflow:'hidden'}}>
+          <TouchableGroup title={group.group} color={group.color} expanded={expanded.has(group.group)} onToggle={()=>toggle(group.group)} count={group.endpoints.length}/>
+          {expanded.has(group.group)&&(
+            <div style={{borderTop:'1px solid var(--b)'}}>
+              {group.endpoints.map(ep=>(
+                <div key={ep.p} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 14px',borderBottom:'1px solid var(--b)'}}>
+                  <span style={{fontFamily:'var(--fm)',fontSize:10,fontWeight:700,padding:'2px 6px',borderRadius:4,background:ep.m==='GET'?'var(--gbg)':ep.m==='POST'?'var(--bbg)':'var(--amberBg)',color:ep.m==='GET'?'var(--green)':ep.m==='POST'?'var(--blue)':'var(--amber)',flexShrink:0,minWidth:40,textAlign:'center'}}>{ep.m}</span>
+                  <code style={{fontFamily:'var(--fm)',fontSize:11,color:'var(--t)',flex:1}}>{ep.p}</code>
+                  <span style={{fontSize:11,color:'var(--t2)'}}>{ep.d}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TouchableGroup({title,color,expanded,onToggle,count}){
+  return(
+    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 14px',cursor:'pointer',background:expanded?'var(--s2)':'transparent'}} onClick={onToggle}>
+      <div style={{display:'flex',alignItems:'center',gap:8}}>
+        <div style={{width:8,height:8,borderRadius:'50%',background:color}}/>
+        <span style={{fontSize:13,fontWeight:600,color:'var(--t)'}}>{title}</span>
+        <span style={{fontSize:10,color:'var(--t2)',fontFamily:'var(--fm)'}}>{count} endpoints</span>
+      </div>
+      <span style={{color:'var(--t3)',transition:'.2s',transform:expanded?'rotate(90deg)':'none'}}>›</span>
+    </div>
+  );
+}
+
+function NotificationsPage({auth, token}){
+  const[alerts,setAlerts]=useState([]);const[count,setCount]=useState(0);const[loading,setL]=useState(false);
+  const load=async()=>{
+    if(!token)return;setL(true);
+    try{
+      const data=await http.get('/api/alerts/mine',token);
+      if(Array.isArray(data))setAlerts(data);
+      const cnt=await http.get('/api/alerts/mine/unread-count',token);
+      if(cnt.unreadCount!==undefined)setCount(cnt.unreadCount);
+    }catch(e){}
+    setL(false);
+  };
+  const acknowledge=async(id)=>{
+    try{
+      await http.patch('/api/alerts/'+id+'/acknowledge',token);
+      setAlerts(as=>as.map(a=>a.id===id?{...a,status:'ACKNOWLEDGED'}:a));
+      setCount(c=>Math.max(0,c-1));
+      toast('Alert acknowledged','success');
+    }catch(e){}
+  };
+  useEffect(()=>{load();},[]);
+  return(
+    <div className="page">
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div><div className="stitle">My Notifications</div><div className="ssub">Alerts received from nearby emergencies</div></div>
+        <button className="btn bgh bsm" onClick={load}>↺ Refresh</button>
+      </div>
+      {count>0&&(
+        <div style={{background:'var(--rbg)',border:'1px solid var(--rbr)',borderRadius:'var(--r)',padding:'12px 16px',display:'flex',alignItems:'center',gap:10,fontSize:13}}>
+          <span style={{fontSize:20}}>🔔</span><span>You have <strong style={{color:'var(--red)'}}>{count}</strong> unread alerts</span>
+        </div>
+      )}
+      <div className="card">
+        <div className="ch"><span className="ct">Alert History</span><span className="tag">{alerts.length} total</span></div>
+        {loading?<div style={{display:'flex',justifyContent:'center',padding:28}}><div className="spin"/></div>
+        :alerts.length===0?<div className="ph"><div className="phi">🔕</div>No alerts received yet<br/><span style={{fontSize:11,color:'var(--t3)'}}>You'll see alerts here when emergencies happen near you</span></div>
+        :(
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {alerts.map(a=>(
+              <div key={a.id} style={{background:'var(--s2)',border:`1px solid ${a.status==='SENT'?'var(--rbr)':'var(--b)'}`,borderRadius:'var(--r2)',padding:'12px 14px',display:'flex',gap:12,alignItems:'flex-start',transition:'.15s'}}>
+                <div style={{width:34,height:34,borderRadius:'50%',background:a.status==='SENT'?'var(--rbg)':'var(--s3)',border:`1px solid ${a.status==='SENT'?'var(--rbr)':'var(--b)'}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,flexShrink:0}}>
+                  {a.emergency?.riskLevel==='HIGH'?'🚨':a.emergency?.riskLevel==='MEDIUM'?'⚠️':'ℹ️'}
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:13,fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                    {a.message||`Emergency #${a.emergency?.id||'?'} nearby`}
+                  </div>
+                  <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center',marginTop:5}}>
+                    {a.emergency?.riskLevel&&<span className={`rp ${a.emergency.riskLevel}`}>{a.emergency.riskLevel}</span>}
+                    <span className={`rp ${a.status}`} style={{background:a.status==='SENT'?'var(--rbg)':'var(--s3)',color:a.status==='SENT'?'var(--red)':'var(--t2)'}}>{a.status}</span>
+                  </div>
+                </div>
+                {a.status==='SENT'&&(
+                  <button className="btn bg bxs" onClick={()=>acknowledge(a.id)}>Mark read</button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SettingsPage({auth,token,onUpdate}){
+  const[name,setName]=useState(auth.name||'');
+  const[curPw,setCurPw]=useState('');const[newPw,setNewPw]=useState('');const[confPw,setConfPw]=useState('');
+  const[nameLoading,setNL]=useState(false);const[pwLoading,setPL]=useState(false);
+  const[nameMsg,setNM]=useState(null);const[pwMsg,setPM]=useState(null);
+
+  // 🟢 DOCTOR SETTINGS STATE
+  const [fee, setFee] = useState(localStorage.getItem('doc_fee_' + auth.deviceId) || 500);
+  const [upi, setUpi] = useState(localStorage.getItem('doc_upi_' + auth.deviceId) || '');
+
+  const saveName=async()=>{
+    if(!name.trim())return;setNL(true);setNM(null);
+    try{
+      await fetch(API+'/api/users/me/profile',{
+        method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({name})
+      }).then(x=>x.json());
+      setNM({ok:true,text:'Name updated successfully ✓'});
+      localStorage.setItem('name', name);
+      onUpdate&&onUpdate({...auth,name});
+    }catch(e){setNM({ok:false,text:'Failed to update name'});}
+    setNL(false);
+  };
+
+  const changePw=async()=>{
+    if(newPw!==confPw){setPM({ok:false,text:'New passwords do not match'});return;}
+    if(newPw.length<8){setPM({ok:false,text:'Password must be at least 8 characters'});return;}
+    setPL(true);setPM(null);
+    try{
+      const r=await fetch(API+'/api/users/me/password',{
+        method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
+        body:JSON.stringify({currentPassword:curPw,newPassword:newPw})
+      }).then(x=>x.json());
+      if(r.message){setPM({ok:true,text:r.message});setCurPw('');setNewPw('');setConfPw('');}
+      else setPM({ok:false,text:r.error||'Failed to change password'});
+    }catch(e){setPM({ok:false,text:'Connection error'});}
+    setPL(false);
+  };
+
+  // 🟢 SAVE DOCTOR SETTINGS
+  const savePaymentSettings = () => {
+    localStorage.setItem('doc_fee_' + auth.deviceId, fee);
+    localStorage.setItem('doc_upi_' + auth.deviceId, upi);
+    toast('Payment Settings Saved Successfully! ✅', 'success');
+  };
+
+  return(
+          <div className="page">
+            <div><div className="stitle">Settings</div><div className="ssub">Manage your profile and account security</div></div>
+            <div className="card">
+              <div className="ch"><span className="ct">Profile</span></div>
+              <div style={{display:'flex',flexDirection:'column',gap:13}}>
+                <div style={{display:'flex',gap:14,alignItems:'center',padding:'4px 0'}}>
+                  <div style={{width:52,height:52,borderRadius:'50%',background:'linear-gradient(135deg,var(--blue),var(--purple))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,fontFamily:'var(--fh)',fontWeight:800,color:'#fff',flexShrink:0}}>
+                    {(auth.name||auth.email||'U')[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <div style={{fontFamily:'var(--fh)',fontWeight:700,fontSize:15}}>{auth.name||'No name set'}</div>
+                    <div style={{fontSize:12,color:'var(--t2)',fontFamily:'var(--fm)'}}>{auth.role}</div>
+                  </div>
+                </div>
+                <div className="fl"><label className="lbl">DISPLAY NAME</label>
+                  <input className="inp" placeholder="Your name" value={name} onChange={e=>setName(e.target.value)}/>
+                </div>
+                {nameMsg&&<div style={{fontSize:12,padding:'8px 12px',borderRadius:'var(--r2)',background:nameMsg.ok?'var(--gbg)':'var(--rbg)',border:`1px solid ${nameMsg.ok?'var(--gbr)':'var(--rbr)'}`,color:nameMsg.ok?'var(--green)':'var(--red)'}}>{nameMsg.text}</div>}
+                <button className="btn bp bsm" onClick={saveName} disabled={nameLoading||!name.trim()} style={{alignSelf:'flex-start'}}>
+                  {nameLoading?<><div className="spin"/>Saving…</>:<>💾 Save Profile</>}
+                </button>
+              </div>
+            </div>
+
+            {/* 🟢 DOCTOR SPECIFIC PAYMENT UI */}
+            {auth.role === 'DOCTOR' && (
+                    <div className="card" style={{borderColor: 'var(--gbr)', background: 'var(--gbg)'}}>
+                      <div className="ch"><span className="ct" style={{color: 'var(--green)'}}>💳 Doctor Payment Settings</span></div>
+                      <div className="fl"><label className="lbl">CONSULTATION FEE (₹ 0 to 5000)</label><input className="inp" type="number" value={fee} onChange={e=>setFee(e.target.value)} /></div>
+                      <div className="fl" style={{marginTop:10}}><label className="lbl">UPI ID / BANK ACCOUNT (For Payout)</label><input className="inp" placeholder="doctor@ybl" value={upi} onChange={e=>setUpi(e.target.value)} /></div>
+                      <button className="btn bg bsm" style={{marginTop:15, alignSelf:'flex-start'}} onClick={savePaymentSettings}>Save Payment Settings</button>
+                    </div>
+            )}
+
+            <div className="card">
+              <div className="ch"><span className="ct">Change Password</span></div>
+              <div style={{display:'flex',flexDirection:'column',gap:13}}>
+                <div className="fl"><label className="lbl">CURRENT PASSWORD</label>
+                  <input className="inp" type="password" placeholder="••••••••" value={curPw} onChange={e=>setCurPw(e.target.value)}/>
+                </div>
+                <div className="fr">
+                  <div className="fl"><label className="lbl">NEW PASSWORD</label>
+                    <input className="inp" type="password" placeholder="Min 8 characters" value={newPw} onChange={e=>setNewPw(e.target.value)}/>
+                  </div>
+                  <div className="fl"><label className="lbl">CONFIRM NEW PASSWORD</label>
+                    <input className="inp" type="password" placeholder="Repeat new password" value={confPw} onChange={e=>setConfPw(e.target.value)}/>
+                  </div>
+                </div>
+                {pwMsg&&<div style={{fontSize:12,padding:'8px 12px',borderRadius:'var(--r2)',background:pwMsg.ok?'var(--gbg)':'var(--rbg)',border:`1px solid ${pwMsg.ok?'var(--gbr)':'var(--rbr)'}`,color:pwMsg.ok?'var(--green)':'var(--red)'}}>{pwMsg.text}</div>}
+                <button className="btn bgh bsm" onClick={changePw} disabled={pwLoading||!curPw||!newPw} style={{alignSelf:'flex-start'}}>
+                  {pwLoading?<><div className="spin"/>Changing…</>:<>🔑 Change Password</>}
+                </button>
+              </div>
+            </div>
+          </div>
+  );
+}
+function SearchPage({token}){
+  const[kw,setKw]=useState('');const[rl,setRl]=useState('');const[st,setSt]=useState('');
+  const[results,setResults]=useState(null);const[loading,setL]=useState(false);
+  const search=async()=>{
+    setL(true);
+    try{
+      const params=new URLSearchParams();
+      if(kw)params.append('keyword',kw);
+      if(rl)params.append('riskLevel',rl);
+      if(st)params.append('status',st);
+      const data=await http.get('/api/emergency/all',token);
+      setResults(Array.isArray(data)?data:[]);
+    }catch(e){setResults([]);}
+    setL(false);
+  };
+  return(
+    <div className="page">
+      <div><div className="stitle">Search Emergencies</div><div className="ssub">Filter by keyword, risk level, status, or location</div></div>
+      <div className="card">
+        <div className="ch"><span className="ct">Search Filters</span></div>
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <div className="fl"><label className="lbl">KEYWORD</label>
+            <input className="inp" placeholder="Search message or AI action…" value={kw} onChange={e=>setKw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&search()}/>
+          </div>
+          <div className="fr">
+            <div className="fl"><label className="lbl">RISK LEVEL</label>
+              <select className="inp sel" value={rl} onChange={e=>setRl(e.target.value)}>
+                <option value="">All levels</option>
+                {['HIGH','MEDIUM','LOW'].map(v=><option key={v} value={v}>{v}</option>)}
+              </select>
+            </div>
+            <div className="fl"><label className="lbl">STATUS</label>
+              <select className="inp sel" value={st} onChange={e=>setSt(e.target.value)}>
+                <option value="">All statuses</option>
+                {['ACTIVE','PENDING','RESOLVED','FALSE_ALARM'].map(v=><option key={v} value={v}>{v}</option>)}
+              </select>
+            </div>
+          </div>
+          <button className="btn bp bsm" onClick={search} disabled={loading} style={{alignSelf:'flex-start'}}>
+            {loading?<><div className="spin"/>Searching…</>:<>🔍 Search</>}
+          </button>
+        </div>
+      </div>
+      {results!==null&&(
+        <div className="card">
+          <div className="ch"><span className="ct">Results</span><span className="tag">{results.length} found</span></div>
+          {results.length===0?<div className="ph"><div className="phi">🔍</div>No emergencies match your filters</div>:(
+            <div style={{display:'flex',flexDirection:'column',gap:7}}>
+              {results.map(e=><div key={e.id} className="ei">
+                <div className={`eic ${e.riskLevel}`}>{e.riskLevel==='HIGH'?'🚨':'⚠️'}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div className="etl">#{e.id} — {e.message||'No description'}</div>
+                  <div className="em"><span className={`rp ${e.riskLevel}`}>{e.riskLevel}</span><span className={`rp ${e.status}`}>{e.status}</span></div>
+                </div>
+              </div>)}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AnalyticsPage(){
+  const[trend,setTrend]=useState(null);const[risk,setRisk]=useState(null);const[roles,setRoles]=useState(null);const[loading,setL]=useState(false);
+  const load=async()=>{
+    setL(true);
+    try{
+      const tr=await http.get('/api/analytics/trend');const r=await http.get('/api/analytics/risk');const ro=await http.get('/api/analytics/roles');
+      setTrend(tr);setRisk(r);setRoles(ro);
+    }catch(e){}setL(false);
+  };
+  useEffect(()=>{load();},[]);
+  const riskColors=['var(--red)','var(--amber)','var(--green)','var(--t3)'];
+  const roleColors=['var(--blue)','var(--green)','var(--purple)','var(--red)','var(--amber)','var(--t2)'];
+  const LegendList=({labels,values,colors})=>(
+    <div style={{display:'flex',flexDirection:'column',gap:5}}>
+      {(labels||[]).map((l,i)=>(
+        <div key={l} style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div style={{display:'flex',alignItems:'center',gap:6}}>
+            <div style={{width:8,height:8,borderRadius:'50%',background:colors[i%colors.length],flexShrink:0}}/>
+            <span style={{fontSize:11,fontFamily:'var(--fm)'}}>{l}</span>
+          </div>
+          <span style={{fontSize:12,fontWeight:600,fontFamily:'var(--fh)'}}>{(values||[])[i]||0}</span>
+        </div>
+      ))}
+    </div>
+  );
+  return(
+    <div className="page">
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div><div className="stitle">Analytics</div><div className="ssub">Emergency patterns and user distribution</div></div>
+        <button className="btn bgh bsm" onClick={load} disabled={loading}>{loading?'…':'↺'}</button>
+      </div>
+      {trend&&(
+        <div className="g2">
+          <div className="card">
+            <div style={{fontSize:10,color:'var(--t2)',fontFamily:'var(--fm)'}}>THIS WEEK</div>
+            <div style={{fontFamily:'var(--fh)',fontSize:30,fontWeight:800,margin:'4px 0'}}>{trend.thisWeek}</div>
+            <div style={{fontSize:11,color:trend.changePercent>0?'var(--red)':trend.changePercent<0?'var(--green)':'var(--t2)'}}>
+              {trend.changePercent!==0?(trend.changePercent>0?'↑':'↓')+Math.abs(trend.changePercent)+'% vs last week':'No change'}</div>
+          </div>
+        </div>
+      )}
+      <div className="g2">
+        {risk&&<div className="card"><div className="ch"><span className="ct">By Risk Level</span></div><LegendList labels={risk.labels} values={risk.values} colors={riskColors}/></div>}
+        {roles&&<div className="card"><div className="ch"><span className="ct">Users by Role</span><span className="tag">{roles.total} total</span></div><LegendList labels={roles.labels} values={roles.values} colors={roleColors}/></div>}
+      </div>
+    </div>
+  );
+}
+
+function DisasterPage({wsAlerts}){
+  const[alerts,setAlerts]=useState([]);const[loading,setL]=useState(false);
+  const load=async()=>{
+    setL(true);
+    try{const d=await http.get('/api/disasters/active');if(Array.isArray(d))setAlerts(d);}
+    catch(e){}setL(false);
+  };
+  useEffect(()=>{load();},[]);
+  const sev={CRITICAL:'var(--red)',HIGH:'var(--red)',MEDIUM:'var(--amber)',LOW:'var(--green)'};
+  const icons={EARTHQUAKE:'🌍',FLOOD:'🌊',FIRE:'🔥',CYCLONE:'🌀',TSUNAMI:'🌊',LANDSLIDE:'⛰️',INDUSTRIAL_ACCIDENT:'🏭',TERRORIST_ATTACK:'⚠️',PANDEMIC:'🦠',OTHER:'🚨'};
+  return(
+    <div className="page">
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div><div className="stitle">Disaster Alerts</div><div className="ssub">Live disaster data from USGS, GDACS</div></div>
+        <button className="btn bgh bsm" onClick={load}>↺ Refresh</button>
+      </div>
+      {loading?<div style={{display:'flex',justifyContent:'center',padding:28}}><div className="spin"/></div>
+      :alerts.length===0?<div className="ph"><div className="phi">🌍</div>No active disaster alerts</div>
+      :(
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          {alerts.map(a=>(
+            <div key={a.id} style={{background:'var(--s2)',border:`1px solid ${sev[a.severity]||'var(--b)'}44`,borderRadius:'var(--r)',padding:'14px 16px'}}>
+              <div style={{display:'flex',gap:12,alignItems:'flex-start'}}>
+                <div style={{fontSize:26,flexShrink:0}}>{icons[a.type]||'⚡'}</div>
+                <div style={{flex:1}}>
+                  <div style={{fontFamily:'var(--fh)',fontWeight:700,fontSize:14,marginBottom:6}}>{a.title}</div>
+                  <div style={{fontSize:12,color:'var(--t2)',lineHeight:1.6,marginBottom:8}}>{a.description}</div>
+                  <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                    <span className={`rp ${a.severity==='CRITICAL'||a.severity==='HIGH'?'HIGH':a.severity==='MEDIUM'?'MEDIUM':'LOW'}`}>{a.severity}</span>
+                    <span className="tag">{a.type.replace('_',' ')}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ConsultationPage({auth,token}){
+  const[doctors,setDoctors]=useState([]);const[loading,setL]=useState(false);
+  const[activeRoom,setActiveRoom]=useState(null);const[loc,setLoc]=useState(null);
+  const[queueNum,setQueueNum]=useState(null);
+
+  useEffect(()=>{navigator.geolocation?.getCurrentPosition(p=>setLoc({lat:p.coords.latitude,lon:p.coords.longitude}));},[]);
+  useEffect(()=>{
+    if(!loc)return;
+    // 🟢 MOCKING DOCTORS WITH SAVED FEES
+    setDoctors([
+      { id: 1, name: 'Dr. Sharma (Cardiologist)', fee: Number(localStorage.getItem('doc_fee_1')) || 500 },
+      { id: 2, name: 'Dr. Verma (General)', fee: 200 },
+      { id: 3, name: 'AI Triage (Free Consult)', fee: 0 }
+    ]);
+  },[loc]);
+
+  const startVideoCall=(docId)=>{
+    setActiveRoom({roomId:'room-'+Math.random().toString(36).slice(2,10)});
+    toast('Doctor is now available! Connecting video call…','success');
+  };
+
+  const joinQueue=(docId,paymentId)=>{
+    const q=Math.floor(Math.random()*5)+1;
+    setQueueNum(q);
+    toast(`Joined queue at position #${q}. Please wait.`,'info');
+    setTimeout(()=>{
+      setQueueNum(null);
+      startVideoCall(docId);
+    },4000);
+  };
+
+  const initiatePaymentAndBook=(docId,fee=0)=>{
+    if(!token){toast('Login required','error');return;}
+    if(fee===0){
+      joinQueue(docId);
+    }else{
+      const options={
+        key:'rzp_test_YOUR_KEY_HERE', // 🟢 Use your Razorpay key
+        amount:fee*100,
+        currency:'INR',
+        name:'ARIA Healthcare',
+        description:'Tele-Consultation Fee',
+        handler:function(res){
+          toast('Payment Successful! Transaction ID: '+res.razorpay_payment_id,'success');
+          joinQueue(docId,res.razorpay_payment_id);
+        },
+        prefill:{name:auth.name,email:'patient@aria.com'},
+        theme:{color:'#f04747'}
+      };
+      if(window.Razorpay){
+        const rzp=new window.Razorpay(options);
+        rzp.open();
+      } else {
+        toast('Razorpay SDK blocked by browser.', 'error');
+      }
+    }
+  };
+
+  const handleFileUpload=(e)=>{
+    const file=e.target.files[0];
+    if(file){toast(`Uploading ${file.name}…`,'info');setTimeout(()=>toast('File uploaded successfully ✓','success'),2000);}
+  };
+
+  // 🟢 DOCTOR VIEW: My Queue
+  if(auth?.role === 'DOCTOR') {
+    return (
+            <div className="page">
+              <div><div className="stitle">My Consultations</div><div className="ssub">Manage your patient queue and video calls.</div></div>
+              <div className="card">
+                <div className="ch"><span className="ct">Your Waiting Queue</span></div>
+                <div className="ph"><div className="phi">👨‍⚕️</div>No patients in queue currently.</div>
+                <div style={{marginTop: 15, fontSize: 13, color: 'var(--t2)', textAlign: 'center'}}>
+                  Make sure your <b>Fee</b> and <b>UPI ID</b> are configured in the <b>Settings</b> tab to receive payments from patients.
+                </div>
+              </div>
+            </div>
+    );
+  }
+
+  // 🟢 PATIENT VIEW: Pay & Book
+  return(
+          <div className="page">
+            <div><div className="stitle">Medical Consultation</div><div className="ssub">Request a video consultation</div></div>
+            {queueNum!==null&&(
+                    <div className="card" style={{borderColor:'var(--abr)',background:'var(--abg)'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:12}}>
+                        <div className="spin" style={{borderColor:'var(--amber)',borderTopColor:'transparent'}}/>
+                        <div>
+                          <div style={{fontWeight:700,color:'var(--amber)'}}>Waiting in Queue…</div>
+                          <div style={{fontSize:12}}>Your position: <strong>#{queueNum}</strong>. A doctor will be with you shortly.</div>
+                        </div>
+                      </div>
+                    </div>
+            )}
+            {activeRoom&&(
+                    <div className="card" style={{borderColor:'var(--gbr)'}}>
+                      <div className="ch"><span className="ct">🎥 Active Consultation</span><span className="tag" style={{background:'var(--gbg)',color:'var(--green)',borderColor:'var(--gbr)'}}>LIVE CALL</span></div>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+                        <div style={{fontSize:13}}>Room: <code style={{fontFamily:'var(--fm)',fontSize:11}}>{activeRoom.roomId}</code></div>
+                      </div>
+                      <div style={{position:'relative',background:'#000',borderRadius:'var(--r2)',overflow:'hidden',aspectRatio:'16/9'}}>
+                        <video style={{width:'100%',height:'100%',objectFit:'cover'}} poster="https://img.freepik.com/free-photo/doctor-offering-medical-consultation-via-video-call_23-2148850742.jpg" autoPlay playsInline loop/>
+                        <div style={{position:'absolute',right:12,bottom:12,width:'28%',aspectRatio:'4/3',background:'#1a1a1a',borderRadius:8,border:'2px solid var(--b)',overflow:'hidden'}}>
+                          <video style={{width:'100%',height:'100%',objectFit:'cover'}} autoPlay muted playsInline />
+                        </div>
+                      </div>
+                      <div style={{display:'flex',gap:8,marginTop:12}}>
+                        <button className="btn bs" style={{flex:1}} onClick={()=>setActiveRoom(null)}>End Call</button>
+                        <label className="btn bgh bsm" style={{cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
+                          📁 Share Report
+                          <input type="file" hidden accept="image/*,application/pdf" onChange={handleFileUpload}/>
+                        </label>
+                      </div>
+                    </div>
+            )}
+            {!activeRoom && queueNum === null && (
+                    <div className="card">
+                      <div className="ch"><span className="ct">🩺 Available Doctors</span><span className="tag">{doctors.length} found</span></div>
+                      {!loc?<div className="ph"><div className="phi">📍</div>Getting your location…</div>
+                              :doctors.length===0?<div className="ph"><div className="phi">🩺</div>No doctors found within 10km</div>
+                                      :(
+                                              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                                                {doctors.map(d=>(
+                                                        <div key={d.id} style={{background:'var(--s2)',border:'1px solid var(--b)',borderRadius:'var(--r2)',padding:'12px 14px',display:'flex',gap:12,alignItems:'center'}}>
+                                                          <div style={{width:40,height:40,borderRadius:'50%',background:'var(--bbg)',border:'1px solid var(--bbr)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>👨‍⚕️</div>
+                                                          <div style={{flex:1}}>
+                                                            <div style={{fontSize:13,fontWeight:500}}>{d.name||'Doctor'}</div>
+                                                            <div style={{fontSize:11,color:'var(--t2)'}}>Fee: <span style={{color: d.fee === 0 ? 'var(--green)' : 'var(--t)'}}>{d.fee === 0 ? 'FREE' : `₹${d.fee}`}</span></div>
+                                                          </div>
+                                                          <button className="btn bg bsm" onClick={()=>initiatePaymentAndBook(d.id, d.fee)} disabled={loading||!auth?.token}>
+                                                            {loading?<div className="spin"/>:(d.fee === 0 ? '📅 Consult Free' : '💳 Pay & Consult')}
+                                                          </button>
+                                                        </div>
+                                                ))}
+                                              </div>
+                                      )}
+                    </div>
+            )}
+          </div>
+  );
+}
+
+function NearbyServicesPage(){
+  const[loc,setLoc]=useState(null);const[doctors,setDoctors]=useState([]);
+  const[ambulances,setAmbulances]=useState([]);const[police,setPolice]=useState([]);
+  const[loading,setL]=useState(false);
+  useEffect(()=>{navigator.geolocation?.getCurrentPosition(p=>setLoc({lat:p.coords.latitude,lon:p.coords.longitude}));},[]);
+  const search=async()=>{
+    if(!loc)return;setL(true);
+    try{
+      const[d,a,p]=await Promise.all([http.get(`/api/medical/doctors/nearby?lat=${loc.lat}&lon=${loc.lon}`),http.get(`/api/medical/ambulances/nearby?lat=${loc.lat}&lon=${loc.lon}`),http.get(`/api/medical/police/nearby?lat=${loc.lat}&lon=${loc.lon}`)]);
+      if(Array.isArray(d))setDoctors(d);if(Array.isArray(a))setAmbulances(a);if(Array.isArray(p))setPolice(p);
+    }catch(e){}setL(false);
+  };
+  useEffect(()=>{if(loc)search();},[loc]);
+  const ServiceList=({title,icon,items,color})=>(
+    <div className="card">
+      <div className="ch"><span className="ct">{icon} {title}</span><span className="tag">{items.length} found</span></div>
+      {items.length===0?<div className="ph"><div className="phi">{icon}</div>None found within 10km</div>:(
+        <div style={{display:'flex',flexDirection:'column',gap:7}}>
+          {items.map(u=>(
+            <div key={u.id} style={{background:'var(--s2)',border:'1px solid var(--b)',borderRadius:'var(--r2)',padding:'10px 12px',display:'flex',gap:10,alignItems:'center'}}>
+              <div style={{width:34,height:34,borderRadius:'50%',background:`${color}22`,border:`1px solid ${color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0}}>{icon}</div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:13,fontWeight:500}}>{u.name||'Unknown'}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+  return(
+    <div className="page">
+      <div><div className="stitle">Nearby Emergency Services</div><div className="ssub">Find doctors, ambulances, and police within 10km</div></div>
+      {!loc?<div className="ph"><div className="phi">📍</div>Waiting for GPS location…</div>:(
+        loading?<div style={{display:'flex',justifyContent:'center',padding:28}}><div className="spin"/></div>:(
+          <>
+            <ServiceList title="Doctors" icon="🩺" items={doctors} color="var(--blue)"/>
+            <ServiceList title="Ambulances" icon="🚑" items={ambulances} color="var(--red)"/>
+            <ServiceList title="Police" icon="👮" items={police} color="var(--purple)"/>
+          </>
+        )
+      )}
+    </div>
+  );
+}
+
+function DutyToggle({auth,token}){
+  const isPro=['DOCTOR','POLICE','AMBULANCE'].includes(auth.role);
+  const[onDuty,setOnDuty]=useState(false);const[loading,setL]=useState(false);
+  if(!isPro)return null;
+  const toggle=async()=>{
+    setL(true);
+    try{
+      await fetch(API+'/api/dispatch/duty',{
+        method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
+        body:JSON.stringify({onDuty:!onDuty,isAvailable:!onDuty})
+      });
+      setOnDuty(d=>!d);
+      toast((!onDuty?'You are now ON DUTY':'You are now OFF DUTY'),'success');
+    }catch(e){}setL(false);
+  };
+  return(
+    <div style={{background:onDuty?'var(--gbg)':'var(--s2)',border:`1px solid ${onDuty?'var(--gbr)':'var(--b)'}`,borderRadius:'var(--r)',padding:'14px 18px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:14}}>
+      <div>
+        <div style={{fontFamily:'var(--fh)',fontWeight:700,fontSize:14}}>{auth.role} Duty Status</div>
+        <div style={{fontSize:12,color:'var(--t2)',marginTop:2}}>{onDuty?'You are receiving dispatch requests':'Toggle on to receive emergency dispatch'}</div>
+      </div>
+      <button className={`btn bsm ${onDuty?'bg':'bs'}`} onClick={toggle} disabled={loading}>
+        {loading?<div className="spin"/>:onDuty?'● ON DUTY':'○ OFF DUTY'}
+      </button>
+    </div>
+  );
+}
+
+function App(){
+  const[auth,setAuth]=useState(null);const[page,setPage]=useState('dashboard');const[wsAlerts,setWsAlerts]=useState([]);const[wsConn,setWsConn]=useState(false);const[emergencies,setEmergencies]=useState([]);const[stats,setStats]=useState(null);const[unreadAlerts,setUnreadAlerts]=useState(0);const stomp=useRef(null);
+  useEffect(()=>{const t=localStorage.getItem('token');const d=localStorage.getItem('deviceId')||genId();if(t)setAuth({token:t,deviceId:d,role:localStorage.getItem('role')||'USER',language:'en',name:localStorage.getItem('name')||'User'});},[]);
+  useEffect(()=>{
+    if(!auth)return;http.get('/api/emergency/all',auth.token).then(d=>{if(Array.isArray(d))setEmergencies([...d].reverse());}).catch(()=>{});http.get('/api/admin/stats',auth.token).then(s=>setStats(s)).catch(()=>{});
+    http.get('/api/alerts/mine/unread-count',auth.token).then(d=>{if(d.unreadCount!==undefined)setUnreadAlerts(d.unreadCount);}).catch(()=>{});
+  },[auth]);
+  useEffect(()=>{
+    if(!auth)return;
+    try{
+      const sock=new SockJS(API+'/ws');const sc=Stomp.over(sock);sc.debug=()=>{};sc.connect({},()=>{setWsConn(true);sc.subscribe('/topic/emergency/broadcast',m=>{toast('🚨 '+m.body,'emergency');});sc.subscribe('/topic/alerts/'+auth.deviceId,m=>{const d=JSON.parse(m.body);setWsAlerts(a=>[...a,d]);toast('⚠️ Alert: '+(d.message||'Emergency nearby'),'emergency');});stomp.current=sc;},()=>setWsConn(false));
+    }catch(e){}
+    return()=>stomp.current?.disconnect?.();
+  },[auth]);
+  const onAuth=d=>{
+    setAuth(d);
+    localStorage.setItem('role', d.role);
+    localStorage.setItem('name', d.name);
+    toast('Welcome'+(d.name?' '+d.name:'')+'! 👋','success');
+  };
+  const logout=()=>{localStorage.removeItem('token');localStorage.removeItem('role');localStorage.removeItem('name');setAuth(null);stomp.current?.disconnect?.();setWsConn(false);};
+  const addNew=e=>{if(e.emergencyId)http.get('/api/emergency/'+e.emergencyId,auth.token).then(d=>{if(d.id)setEmergencies(es=>[d,...es]);}).catch(()=>{});};
+
+  // 🟢 SMART NAVIGATION LOGIC
+  let nav=[
+    {id:'dashboard',ic:'📊',label:'Dashboard'},
+    {id:'sos',ic:'🆘',label:'SOS Report'},
+    {id:'chat',ic:'💬',label:'ARIA Chat'},
+    {id:'alerts',ic:'📡',label:'Live Feed',badge:wsAlerts.length||null},
+    {id:'map',ic:'🗺️',label:'Live Map'},
+    {id:'notifications',ic:'🔔',label:'My Alerts',badge:unreadAlerts||null},
+    {id:'analytics',ic:'📈',label:'Analytics'},
+    {id:'search',ic:'🔍',label:'Search'},
+    {id:'disasters',ic:'🌍',label:'Disasters'},
+    {id:'services',ic:'🏥',label:'Nearby Help'},
+    {id:'consult',ic:'🎥',label: auth?.role === 'DOCTOR' ? 'My Queue' : 'Consult Doctor'}, // 🟢 Name changes based on role
+    {id:'settings',ic:'👤',label:'Settings'}
+  ];
+
+  // 🟢 ONLY ADMIN SEES THESE
+  if(auth?.role === 'ADMIN') {
+    nav.push({id:'admin',ic:'⚙️',label:'Admin Panel'});
+    nav.push({id:'api',ic:'📡',label:'API Reference'});
+  }
+
+  const pages={dashboard:<Dashboard auth={auth||{}} wsAlerts={wsAlerts} emergencies={emergencies} stats={stats}/>,sos:<SOSPage auth={auth||{}} token={auth?.token} onNew={addNew}/>,chat:<ChatPage auth={auth||{}} token={auth?.token}/>,alerts:<AlertsPage wsAlerts={wsAlerts} token={auth?.token}/>,map:<MapPage auth={auth||{}} token={auth?.token} emergencies={emergencies}/>,notifications:<NotificationsPage auth={auth||{}} token={auth?.token}/>,search:<SearchPage token={auth?.token}/>,analytics:<AnalyticsPage/>,disasters:<DisasterPage wsAlerts={wsAlerts}/>,services:<NearbyServicesPage/>,consult:<ConsultationPage auth={auth||{}} token={auth?.token}/>,admin:<AdminPage token={auth?.token}/>,settings:<SettingsPage auth={auth||{}} token={auth?.token} onUpdate={d=>setAuth(a=>({...a,...d}))}/>,api:<ApiPage/>};
+
+  if(!auth)return(<><Toasts/><Auth onAuth={onAuth}/></>);
+
+  return(
+          <div className="app">
+            <Toasts/>
+            <div className="topbar">
+              <div className="logo"><div className="lp"/>ARIA Emergency Network</div>
+              <div className="tr">
+                <div className="pill"><div className={`dot ${wsConn?'dg':'dgr'}`}/>{wsConn?'Live':'Offline'}</div>
+                {wsAlerts.length>0&&<div className="pill" style={{borderColor:'var(--rbr)',color:'var(--red)'}}>🔔 {wsAlerts.length}</div>}
+                <div className="pill" style={{background: 'var(--blue)', color: '#fff', border: 'none'}}>{auth.role||'GUEST'}</div>
+                <button className="btn bgh bsm" onClick={logout}>Sign out</button>
+              </div>
+            </div>
+            <div className="body">
+              <div className="sidebar">
+                <div className="nav"><div className="nl">Navigation</div>{nav.map(n=><div key={n.id} className={`ni${page===n.id?' on':''}`} onClick={()=>setPage(n.id)}><span className="ic">{n.ic}</span><span>{n.label}</span>{n.badge&&n.badge>0&&<span className="nb">{n.badge}</span>}</div>)}</div>
+                <div className="sf"><div className="si">{(auth.deviceId||'').slice(0,14)}…<br/><span style={{color:wsConn?'var(--green)':'var(--t3)'}}>{wsConn?'● WS Connected':'○ WS Offline'}</span></div></div>
+              </div>
+              <div className="main">{pages[page]||null}</div>
+            </div>
+          </div>
+  );
+}ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js')
+      .then(r=>console.log('[SW] Registered:',r.scope))
+      .catch(e=>console.warn('[SW] Failed:',e));
+  });
+}
+</script>
+</body>
+</html>
