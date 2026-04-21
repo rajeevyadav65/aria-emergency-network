@@ -90,18 +90,18 @@ jobs:
           echo "index.html size: $SIZE bytes"
           [ "$SIZE" -gt 50000 ] || (echo "Too small!" && exit 1)
 
-      - name: Validate manifest.json
-        run: python3 -c "import json; json.load(open('emergency-system/backend/src/main/resources/static/manifest.json')); print('manifest.json OK')"
+          - name: Validate manifest.json
+        run: python3 -c "import json; json.load(open('backend/src/main/resources/static/manifest.json')); print('manifest.json OK')"
 
       - name: Validate service worker
-        run: test -f emergency-system/backend/src/main/resources/static/sw.js && echo "sw.js OK"
+        run: test -f backend/src/main/resources/static/sw.js && echo "sw.js OK"
 
       - name: Validate schema.sql
-        run: grep -c "CREATE TABLE" emergency-system/schema.sql | xargs -I{} echo "{} tables in schema.sql"
+        run: grep -c "CREATE TABLE" schema.sql | xargs -I{} echo "{} tables in schema.sql"
 
       - name: Validate Android Kotlin files compile (syntax check)
         run: |
-          KT_COUNT=$(find emergency-system/android -name "*.kt" | wc -l)
+          KT_COUNT=$(find android -name "*.kt" | wc -l)
           echo "Kotlin files: $KT_COUNT"
           [ "$KT_COUNT" -gt 10 ] || (echo "Too few Kotlin files!" && exit 1)
 
@@ -109,7 +109,7 @@ jobs:
         run: |
           python3 -c "
           import xml.etree.ElementTree as ET
-          tree = ET.parse('emergency-system/android/src/main/AndroidManifest.xml')
+          tree = ET.parse('android/src/main/AndroidManifest.xml')
           root = tree.getroot()
           perms = root.findall('{http://schemas.android.com/apk/res/android}uses-permission')
           print(f'AndroidManifest OK: {len(perms)} permissions declared')
@@ -119,11 +119,11 @@ jobs:
         run: |
           python3 -c "
           import json
-          c = json.load(open('emergency-system/ARIA-API.postman_collection.json'))
+          c = json.load(open('ARIA-API.postman_collection.json'))
           total = sum(len(f.get('item',[])) for f in c['item'])
           print(f'Postman: {len(c[\"item\"])} folders, {total} requests')
           assert total >= 50, f'Expected 50+ requests, got {total}'
           "
 
       - name: Architecture docs present
-        run: test -f emergency-system/docs/ARCHITECTURE.md && wc -l emergency-system/docs/ARCHITECTURE.md
+        run: test -f docs/ARCHITECTURE.md && wc -l docs/ARCHITECTURE.md
