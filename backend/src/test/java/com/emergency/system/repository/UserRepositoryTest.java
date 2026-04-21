@@ -12,15 +12,11 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * JPA slice tests for UserRepository — only loads JPA layer (no web, no security).
- */
 @DataJpaTest
 class UserRepositoryTest {
 
     @Autowired private UserRepository userRepository;
 
-    // Agra, India coordinates
     private static final double BASE_LAT = 27.1767;
     private static final double BASE_LON = 78.0081;
 
@@ -28,22 +24,37 @@ class UserRepositoryTest {
     void setUp() {
         userRepository.deleteAll();
 
-        // 100m away
-        save("dev-near", 27.1776, 78.0090);
-        // 400m away
-        save("dev-medium", 27.1803, 78.0120);
-        // 2km away (far)
-        save("dev-far", 27.1940, 78.0250);
-        // No location
-        save("dev-noloc", null, null);
+        saveGuest("dev-near", 27.1776, 78.0090);
+        saveGuest("dev-medium", 27.1794, 78.0107);
+        saveGuest("dev-far", 27.1940, 78.0250);
+        saveGuest("dev-noloc", null, null);
+
+        saveResponder("doc-device-1", User.UserRole.DOCTOR, 27.1850, 78.0200, true, true);
+        saveResponder("amb-device-1", User.UserRole.AMBULANCE, 27.1900, 78.0300, true, true);
     }
 
-    private void save(String deviceId, Double lat, Double lon) {
+    private void saveGuest(String deviceId, Double lat, Double lon) {
         userRepository.save(User.builder()
                 .deviceId(deviceId)
                 .role(User.UserRole.GUEST)
-                .latitude(lat).longitude(lon)
+                .latitude(lat)
+                .longitude(lon)
                 .locationUpdatedAt(lat != null ? LocalDateTime.now() : null)
+                .build());
+    }
+
+    private void saveResponder(String deviceId, User.UserRole role,
+                               Double lat, Double lon, boolean onDuty, boolean available) {
+        userRepository.save(User.builder()
+                .deviceId(deviceId)
+                .email(deviceId + "@test.local")
+                .password("encoded")
+                .role(role)
+                .isOnDuty(onDuty)
+                .isAvailable(available)
+                .latitude(lat)
+                .longitude(lon)
+                .locationUpdatedAt(LocalDateTime.now())
                 .build());
     }
 
@@ -69,7 +80,7 @@ class UserRepositoryTest {
     @DisplayName("findUsersWithinRadius 5000m — returns all with location")
     void findWithin5km() {
         List<User> users = userRepository.findUsersWithinRadius(BASE_LAT, BASE_LON, 5000);
-        assertThat(users).hasSize(3);
+        assertThat(users).hasSize(5);
     }
 
     @Test
@@ -89,7 +100,6 @@ class UserRepositoryTest {
     @Test
     @DisplayName("findByRole returns users with matching role")
     void findByRole_returnsMatchingUsers() {
-        // Seeded by DataSeeder: dr.sharma@aria.com is DOCTOR
         var doctors = userRepository.findByRole(User.UserRole.DOCTOR);
         assertThat(doctors).isNotEmpty();
         doctors.forEach(u -> assertThat(u.getRole()).isEqualTo(User.UserRole.DOCTOR));
@@ -116,7 +126,6 @@ class UserRepositoryTest {
     @Test
     @DisplayName("findUsersWithinRadiusByRole returns doctor within radius")
     void findUsersWithinRadiusByRole_doctorInRange() {
-        // dr.sharma@aria.com is at 27.1850, 78.0200 — within 5km of 27.1767, 78.0081
         var nearby = userRepository.findUsersWithinRadiusByRole(
                 27.1767, 78.0081, 5000, User.UserRole.DOCTOR);
         assertThat(nearby).isNotEmpty();
@@ -127,8 +136,7 @@ class UserRepositoryTest {
     @DisplayName("findUsersWithinRadiusByRole returns empty for tiny radius")
     void findUsersWithinRadiusByRole_tinyRadius() {
         var nearby = userRepository.findUsersWithinRadiusByRole(
-                0.0, 0.0, 1, User.UserRole.DOCTOR); // middle of Atlantic
+                0.0, 0.0, 1, User.UserRole.DOCTOR);
         assertThat(nearby).isEmpty();
     }
-
 }

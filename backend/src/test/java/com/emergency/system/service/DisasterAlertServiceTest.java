@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+// 🟢 YE DONO IMPORTS MISSING THE
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -19,6 +20,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,7 +58,9 @@ class DisasterAlertServiceTest {
                     .build();
             return a;
         });
-        when(userRepository.findUsersWithinRadius(anyDouble(), anyDouble(), anyDouble()))
+
+        // Lenient use kar rahe hain taaki unnecessary stubbing error na aaye
+        lenient().when(userRepository.findUsersWithinRadius(anyDouble(), anyDouble(), anyDouble()))
                 .thenReturn(List.of());
 
         DisasterAlert result = service.createManualAlert(alert);

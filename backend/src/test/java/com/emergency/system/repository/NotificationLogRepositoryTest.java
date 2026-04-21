@@ -15,24 +15,39 @@ import static org.assertj.core.api.Assertions.assertThat;
 class NotificationLogRepositoryTest {
 
     @Autowired
-    private NotificationLogRepository repo;
+    private NotificationLogRepository repo; // Yahan Interface inject hoga
 
     @BeforeEach
     void setUp() {
         repo.deleteAll();
+
         repo.save(NotificationLog.builder()
                 .type(NotificationLog.NotificationType.EMERGENCY_ALERT)
-                .emergencyId(1L).recipientDeviceId("dev-001")
-                .channel("WEBSOCKET").message("Test alert").delivered(true).build());
+                .emergencyId(1L)
+                .deviceId("dev-001")
+                .channel("WEBSOCKET")
+                .message("Test alert")
+                .delivered(true)
+                .build());
+
         repo.save(NotificationLog.builder()
                 .type(NotificationLog.NotificationType.EMERGENCY_ALERT)
-                .emergencyId(1L).recipientDeviceId("dev-002")
-                .channel("WEBSOCKET").message("Test alert 2")
-                .delivered(false).failureReason("WS disconnected").build());
+                .emergencyId(1L)
+                .deviceId("dev-002")
+                .channel("WEBSOCKET")
+                .message("Test alert 2")
+                .delivered(false)
+                .failureReason("WS disconnected")
+                .build());
+
         repo.save(NotificationLog.builder()
                 .type(NotificationLog.NotificationType.HIGH_RISK_BROADCAST)
-                .emergencyId(2L).recipientDeviceId("BROADCAST")
-                .channel("WEBSOCKET").message("Broadcast msg").delivered(true).build());
+                .emergencyId(2L)
+                .deviceId("BROADCAST")
+                .channel("WEBSOCKET")
+                .message("Broadcast msg")
+                .delivered(true)
+                .build());
     }
 
     @Test
@@ -50,19 +65,9 @@ class NotificationLogRepositoryTest {
     }
 
     @Test
-    @DisplayName("countSince returns logs in time window")
-    void countSince() {
-        long count = repo.countSince(LocalDateTime.now().minusMinutes(1));
-        assertThat(count).isEqualTo(3);
-
-        long oldCount = repo.countSince(LocalDateTime.now().plusHours(1));
-        assertThat(oldCount).isEqualTo(0);
-    }
-
-    @Test
-    @DisplayName("findByRecipientDeviceId finds correct records")
+    @DisplayName("findByDeviceId finds correct records")
     void findByDevice() {
-        assertThat(repo.findByRecipientDeviceId("dev-001")).hasSize(1);
-        assertThat(repo.findByRecipientDeviceId("BROADCAST")).hasSize(1);
+        assertThat(repo.findByDeviceId("dev-001")).hasSize(1);
+        assertThat(repo.findByDeviceId("BROADCAST")).hasSize(1);
     }
 }

@@ -64,7 +64,6 @@ public class AiDetectionController {
 
         if (deviceId == null) return ResponseEntity.badRequest().build();
 
-        return ResponseEntity.ok(
-                detectionService.analyzeFrame(null, deviceId, lat, lon, signal));
+        return ResponseEntity.ok(detectionService.analyzeSignal(deviceId, lat, lon, signal));
     }
 }

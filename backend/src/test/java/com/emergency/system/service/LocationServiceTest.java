@@ -8,10 +8,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
-/**
- * Unit tests for Haversine distance calculation.
- * No Spring context needed.
- */
 class LocationServiceTest {
 
     @Test
@@ -23,14 +19,14 @@ class LocationServiceTest {
 
     @ParameterizedTest(name = "{0}")
     @CsvSource({
-        "Taj Mahal to Agra Fort (~2.5km), 27.1751, 78.0421, 27.1788, 78.0010, 2500, 400",
-        "Nearby point (~100m),            27.1767, 78.0081, 27.1776, 78.0090, 100, 50",
-        "Far apart (~500km),              28.6139, 77.2090, 22.5726, 88.3639, 500000, 20000"
+            "Taj Mahal to Agra Fort, 27.1751, 78.0421, 27.1788, 78.0010, 4086, 400",
+            "Nearby point (~100m),   27.1767, 78.0081, 27.1776, 78.0090, 100, 50",
+            "Far apart (~1300km),    28.6139, 77.2090, 22.5726, 88.3639, 1303833, 20000"
     })
     @DisplayName("Haversine: {0}")
     void haversineDistance(String label, double lat1, double lon1,
-                            double lat2, double lon2,
-                            double expectedMeters, double toleranceMeters) {
+                           double lat2, double lon2,
+                           double expectedMeters, double toleranceMeters) {
         double dist = LocationService.haversineDistance(lat1, lon1, lat2, lon2);
         assertThat(dist).isCloseTo(expectedMeters, within(toleranceMeters));
     }

@@ -67,6 +67,6 @@ class AriaHealthIndicatorTest {
         Health h = indicator.health();
 
         assertThat(h.getStatus()).isEqualTo(Status.UP);
-        assertThat(h.getDetails().get("activeEmergencies")).isEqualTo(1);
+        assertThat(h.getDetails().get("activeEmergencies")).isEqualTo(1L); // Fixed here
     }
 }

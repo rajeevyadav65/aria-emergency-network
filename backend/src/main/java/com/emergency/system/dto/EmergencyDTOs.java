@@ -89,7 +89,9 @@ public class EmergencyDTOs {
 
     @Data @Builder @NoArgsConstructor @AllArgsConstructor
     public static class LocationUpdateRequest {
+        @NotNull(message = "Latitude is required")
         private Double latitude;
+        @NotNull(message = "Longitude is required")
         private Double longitude;
         private String deviceId;
     }
@@ -122,6 +124,7 @@ public class EmergencyDTOs {
         private String reply;
         private String sessionId;
         private LocalDateTime timestamp;
+        @com.fasterxml.jackson.annotation.JsonProperty("isEmergency")
         private boolean isEmergency;
         private String suggestedAction;
     }

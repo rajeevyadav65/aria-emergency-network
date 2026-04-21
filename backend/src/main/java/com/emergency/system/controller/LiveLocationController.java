@@ -9,18 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-/**
- * Live Location Sharing Endpoints.
- *
- * POST   /api/location/update            — update my GPS position
- * POST   /api/location/share             — share my location with a responder
- * DELETE /api/location/share/{dev}/{rid} — stop sharing with a responder
- * GET    /api/location/shares            — get my active shares
- * GET    /api/location/track             — responder: get victim latest GPS
- * POST   /api/location/responder         — responder: push own position to victim
- */
 @RestController
-@RequestMapping("/api/location")
+@RequestMapping("/api/live-location")
 @Tag(name = "Live Location", description = "Real-time GPS sharing between victims and responders")
 @RequiredArgsConstructor
 public class LiveLocationController {
@@ -53,7 +43,6 @@ public class LiveLocationController {
                 ? ((Number) body.get("accuracy")).floatValue() : null;
 
         Map<String, Object> result = locationService.startSharing(deviceId, responderUserId);
-        // Also broadcast current position immediately
         locationService.broadcastLocation(deviceId, lat, lon, accuracy, null);
         return ResponseEntity.ok(result);
     }

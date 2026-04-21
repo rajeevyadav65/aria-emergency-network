@@ -41,37 +41,43 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedUsers() {
-        if (userRepository.existsByEmail("admin@aria.com")) return;
+        if (!userRepository.existsByEmail("admin@aria.com")) {
+            userRepository.save(User.builder()
+                    .name("Admin User").email("admin@aria.com")
+                    .password(passwordEncoder.encode("admin123"))
+                    .deviceId("device-admin-001")
+                    .role(User.UserRole.ADMIN)
+                    .latitude(27.1767).longitude(78.0081)
+                    .build());
+        }
 
-        userRepository.save(User.builder()
-                .name("Admin User").email("admin@aria.com")
-                .password(passwordEncoder.encode("admin123"))
-                .deviceId("device-admin-001")
-                .role(User.UserRole.ADMIN)
-                .latitude(27.1767).longitude(78.0081)
-                .build());
+        if (!userRepository.existsByEmail("alice@demo.com")) {
+            userRepository.save(User.builder()
+                    .name("Alice Sharma").email("alice@demo.com")
+                    .password(passwordEncoder.encode("demo123"))
+                    .deviceId("device-alice-002")
+                    .role(User.UserRole.USER)
+                    .latitude(27.1790).longitude(78.0100)
+                    .build());
+        }
 
-        userRepository.save(User.builder()
-                .name("Alice Sharma").email("alice@demo.com")
-                .password(passwordEncoder.encode("demo123"))
-                .deviceId("device-alice-002")
-                .role(User.UserRole.USER)
-                .latitude(27.1790).longitude(78.0100)
-                .build());
+        if (!userRepository.existsByEmail("bob@demo.com")) {
+            userRepository.save(User.builder()
+                    .name("Bob Verma").email("bob@demo.com")
+                    .password(passwordEncoder.encode("demo123"))
+                    .deviceId("device-bob-003")
+                    .role(User.UserRole.USER)
+                    .latitude(27.1750).longitude(78.0060)
+                    .build());
+        }
 
-        userRepository.save(User.builder()
-                .name("Bob Verma").email("bob@demo.com")
-                .password(passwordEncoder.encode("demo123"))
-                .deviceId("device-bob-003")
-                .role(User.UserRole.USER)
-                .latitude(27.1750).longitude(78.0060)
-                .build());
-
-        userRepository.save(User.builder()
-                .deviceId("guest-device-demo-004")
-                .role(User.UserRole.GUEST)
-                .latitude(27.1800).longitude(78.0120)
-                .build());
+        if (!userRepository.existsByDeviceId("guest-device-demo-004")) {
+            userRepository.save(User.builder()
+                    .deviceId("guest-device-demo-004")
+                    .role(User.UserRole.GUEST)
+                    .latitude(27.1800).longitude(78.0120)
+                    .build());
+        }
 
         // Doctor
         if (!userRepository.existsByEmail("dr.sharma@aria.com")) {

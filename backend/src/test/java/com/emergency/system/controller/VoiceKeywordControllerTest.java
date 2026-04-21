@@ -49,16 +49,14 @@ class VoiceKeywordControllerTest {
     @Test
     @DisplayName("GET /api/voice/keyword/status — returns status after keyword set")
     void getStatus_afterSet() throws Exception {
-        String token = loginAs("bob@demo.com", "demo123");
+        String token = loginAs("alice@demo.com", "demo123");
 
-        // First set a keyword
         mvc.perform(post("/api/voice/keyword")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(Map.of("keyword", "SECRET99"))))
                 .andExpect(status().isOk());
 
-        // Then check status
         mvc.perform(get("/api/voice/keyword/status")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())

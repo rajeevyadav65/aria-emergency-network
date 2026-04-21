@@ -46,17 +46,20 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // 🟢 FIX 1: CORS Error Resolved
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, accessDeniedException) ->
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN)))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 🟢 FIX 2: Preflight requests allowed
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/api/auth/**",
-                                "/api/emergency/**",
                                 "/api/dashboard/**",
                                 "/dashboard",
                                 "/dashboard.html",
-                                "/api/location/**",
                                 "/api/maps/**",
                                 "/ws/**",
                                 "/actuator/**",
@@ -67,8 +70,40 @@ public class SecurityConfig {
                                 "/index.html",
                                 "/static/**",
                                 "/*.js", "/*.css", "/*.png",
-                                "/error" // 🟢 FIX 3: Spring Boot default error masking fixed
+                                "/error"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/emergency/report",
+                                "/api/emergency/ambulance/book",
+                                "/api/ai/**",
+                                "/api/chat/message",
+                                "/api/location/update",
+                                "/api/location/share",
+                                "/api/location-tracking/share",
+                                "/api/user-location/update",
+                                "/api/sync/batch").permitAll()
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/api/chat/clear",
+                                "/api/location/share/**",
+                                "/api/location-tracking/share/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/chat/history",
+                                "/api/emergency/search",
+                                "/api/disasters/active",
+                                "/api/disasters/nearby",
+                                "/api/analytics/**",
+                                "/api/medical/doctors/nearby",
+                                "/api/medical/ambulances/nearby",
+                                "/api/medical/police/nearby",
+                                "/api/dispatch/doctors",
+                                "/api/dispatch/police",
+                                "/api/dispatch/ambulances",
+                                "/api/location/history",
+                                "/api/location/history/**",
+                                "/api/location/share/active",
+                                "/api/location-tracking/history/**",
+                                "/api/location-tracking/share/active",
+                                "/api/sync/pending").permitAll()
                         .anyRequest().authenticated()
                 )
                 .headers(h -> h.frameOptions(f -> f.sameOrigin()))
@@ -77,7 +112,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🟢 CORS Rules: Sabhi IP aur devices se request allow karne ke liye
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();

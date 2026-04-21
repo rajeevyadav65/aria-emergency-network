@@ -89,6 +89,10 @@ public class AiDetectionService {
         }
     }
 
+    public DetectionResult analyzeSignal(String deviceId, double latitude, double longitude, String signal) {
+        return handleDeviceSignalFallback(signal, deviceId, latitude, longitude);
+    }
+
     private DetectionResult analyzeWithClaude(String imageBase64, String deviceId,
                                                double lat, double lon, String hint)
             throws Exception {
