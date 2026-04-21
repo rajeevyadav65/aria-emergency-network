@@ -36,6 +36,8 @@ export const Colors = {
   purpleBg:     '#F7EFFE',
   purpleBorder: '#DFB8F7',
 
+  textMuted: '#888888',
+
   // Neutrals (iOS-accurate)
   white:        '#FFFFFF',
   bg:           '#F2F2F7',

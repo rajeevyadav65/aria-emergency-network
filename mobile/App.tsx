@@ -22,7 +22,7 @@ import DispatchScreen   from './src/screens/dispatch/DispatchScreen';
 import DisastersScreen  from './src/screens/disasters/DisastersScreen';
 
 import { Colors, Radius } from './src/utils/theme';
-
+// @ts-ignore
 const storage = new MMKV();
 const Stack = createNativeStackNavigator();
 const Tab   = createBottomTabNavigator();
@@ -48,6 +48,7 @@ function MainTabs() {
 
   return (
     <Tab.Navigator
+        id="MainTabs"
       screenOptions={{
         headerShown: false,
         tabBarStyle: styles.tabBar,
@@ -104,9 +105,12 @@ function MainTabs() {
 }
 
 function TabIcon({ emoji, color, size = 20 }: any) {
-  return <View style={{ opacity: color === Colors.red ? 1 : 0.7, alignItems: 'center', justifyContent: 'center' }}>
-    <View style={{ fontSize: size }}><TabEmoji emoji={emoji} size={size} /></View>
-  </View>;
+  return (
+      <View style={{ opacity: color === Colors.red ? 1 : 0.7, alignItems: 'center', justifyContent: 'center' }}>
+        {/* Yahan se View ka fontSize hata diya hai */}
+        <TabEmoji emoji={emoji} size={size} />
+      </View>
+  );
 }
 
 function TabEmoji({ emoji, size = 20 }: any) {
@@ -131,6 +135,7 @@ export default function App() {
         <NavigationContainer theme={NAV_THEME}>
           <StatusBar barStyle="light-content" backgroundColor={Colors.bg} />
           <Stack.Navigator
+              id="RootStack"
             initialRouteName={initialRoute}
             screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
           >
@@ -155,10 +160,14 @@ const styles = StyleSheet.create({
     height: Platform.OS === 'ios' ? 88 : 72,
     paddingTop: 6,
   },
-  tabBarBg: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: Colors.surface,
-  },
+    tabBarBg: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: Colors.surface,
+    },
   tabBarLine: {
     position: 'absolute', top: 0, left: 20, right: 20, height: 1,
     backgroundColor: Colors.border,

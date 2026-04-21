@@ -66,12 +66,14 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
+                                "/h2-console/**", // <--- BAS YAHAN ADD KARIYE
                                 "/",
                                 "/index.html",
                                 "/static/**",
                                 "/*.js", "/*.css", "/*.png",
                                 "/error"
                         ).permitAll()
+                        // Baaki ka code waisa hi rehne dein...
                         .requestMatchers(HttpMethod.POST,
                                 "/api/emergency/report",
                                 "/api/emergency/ambulance/book",
