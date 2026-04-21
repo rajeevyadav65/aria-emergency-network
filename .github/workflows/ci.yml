@@ -85,7 +85,7 @@ jobs:
 
       - name: Validate index.html
         run: |
-          FILE=emergency-system/backend/src/main/resources/static/index.html
+          FILE=backend/src/main/resources/static/index.html
           SIZE=$(wc -c < "$FILE")
           echo "index.html size: $SIZE bytes"
           [ "$SIZE" -gt 50000 ] || (echo "Too small!" && exit 1)
