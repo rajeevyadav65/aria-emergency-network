@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Sahayata - Admin Dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 600px; width: 100%; border-radius: 10px; }
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        .alert-panel { background: white; padding: 15px; margin-top: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>🚨 Smart Sahayata - Real-Time Monitor</h1>
+    <div id="status">Status: Connecting...</div>
+</div>
+
+<div id="map"></div>
+
+<div class="alert-panel">
+    <h3>Recent Alerts</h3>
+    <ul id="alert-list"></ul>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // Default View (Ranchi/India)
+    var map = L.map('map').setView([23.3441, 85.3091], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    var markers = {};
+
+    function fetchEmergencies() {
+        fetch('/api/dashboard/active-emergencies')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('status').innerText = "Status: Live Tracking Active";
+
+                data.forEach(emergency => {
+                    var lat = emergency.latitude;
+                    var lon = emergency.longitude;
+
+                    if (!markers[emergency.id]) {
+                        // Naya marker add karein
+                        var marker = L.marker([lat, lon]).addTo(map)
+                            .bindPopup("<b>Emergency!</b><br>" + emergency.message + "<br>Status: " + emergency.status)
+                            .openPopup();
+                        markers[emergency.id] = marker;
+
+                        // List mein add karein
+                        var li = document.createElement('li');
+                        li.innerText = "[" + emergency.status + "] Emergency at: " + lat + ", " + lon;
+                        document.getElementById('alert-list').prepend(li);
+                    } else {
+                        // Purane marker ki position update karein (Real-time movement)
+                        markers[emergency.id].setLatLng([lat, lon]);
+                    }
+                });
+            })
+            .catch(err => console.error("Error fetching data:", err));
+    }
+
+    // Har 5 second mein refresh karega
+    setInterval(fetchEmergencies, 5000);
+    fetchEmergencies();
+</script>
+</body>
+</html>
