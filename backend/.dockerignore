@@ -1,0 +1,10 @@
+target
+*.log
+*.tmp
+*.swp
+.mvn
+.mvnw
+.git
+.gitignore
+.idea
+.vscode
